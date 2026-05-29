@@ -6,6 +6,60 @@
      Desktop : 769px +
    ═══════════════════════════════════════════════════ */
 
+/* ════════════════════════════════════════════════════
+   ANIMATIONS
+   ════════════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.anim-up {
+  opacity: 0;
+  animation: fadeUp .8s cubic-bezier(.22,1,.36,1) forwards;
+  animation-delay: var(--d, 0s);
+}
+.anim-fade {
+  opacity: 0;
+  animation: fadeIn .8s ease forwards;
+  animation-delay: var(--d, 0s);
+}
+/* 파티클 캔버스 */
+.hero-particles {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+}
+/* 심볼 링 궤도 */
+.symbol-ring { position: relative; }
+.ring-orbit {
+  position: absolute; inset: -16px;
+  border-radius: 50%;
+  border: 1px solid rgba(147,197,253,.25);
+  animation: orbit 9s linear infinite;
+}
+.ring-orbit::after {
+  content: '';
+  position: absolute; top: -5px; left: 50%;
+  width: 10px; height: 10px;
+  background: #93c5fd; border-radius: 50%;
+  box-shadow: 0 0 12px 3px rgba(147,197,253,.6);
+  transform: translateX(-50%);
+}
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+/* 스크롤 리빌 */
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity .65s cubic-bezier(.22,1,.36,1), transform .65s cubic-bezier(.22,1,.36,1);
+}
+.reveal.revealed { opacity: 1; transform: translateY(0); }
+
 /* ── Reset ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -135,7 +189,7 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 .g2 { width: min(350px, 50vw); height: min(350px, 50vw); background: rgba(212,160,23,.12); bottom: 0; left: -50px; }
 
 .hero-inner {
-  position: relative; z-index: 1;
+  position: relative; z-index: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: center; gap: var(--sp-lg);

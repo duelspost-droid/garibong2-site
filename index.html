@@ -41,26 +41,28 @@
   <!-- ── 히어로 ────────────────────────────────────── -->
   <section class="hero">
     <div class="hero-bg-grid"></div>
+    <canvas class="hero-particles" id="particleCanvas"></canvas>
     <div class="hero-glow g1"></div>
     <div class="hero-glow g2"></div>
     <div class="container hero-inner">
       <div class="hero-text">
-        <p class="hero-tag">서울특별시 구로구 · 가리봉동 일대</p>
-        <h1>새벽이 밝아오는<br><em>가리봉2구역</em></h1>
-        <p class="hero-desc">산업화 시대를 함께 살아온 우리 동네,<br>이제 새로운 주거공간으로 거듭납니다.</p>
-        <div class="hero-btns">
+        <p class="hero-tag anim-fade" style="--d:0.1s">서울특별시 구로구 · 가리봉동 일대</p>
+        <h1 class="anim-up" style="--d:0.25s">새벽이 밝아오는<br><em>가리봉2구역</em></h1>
+        <p class="hero-desc anim-up" style="--d:0.4s">산업화 시대를 함께 살아온 우리 동네,<br>이제 새로운 주거공간으로 거듭납니다.</p>
+        <div class="hero-btns anim-up" style="--d:0.55s">
           <a href="#progress" class="btn btn-white">사업 진행 현황</a>
           <a href="#notice"   class="btn btn-ghost">공지사항 보기</a>
         </div>
       </div>
-      <div class="hero-visual">
+      <div class="hero-visual anim-fade" style="--d:0.3s">
         <div class="symbol-ring">
+          <div class="ring-orbit"></div>
           <img src="symbol.svg" alt="가리봉2구역 심볼" class="hero-symbol"/>
         </div>
         <div class="hero-badges">
-          <div class="hbadge"><span class="hbadge-num">380</span><span class="hbadge-label">조합원</span></div>
+          <div class="hbadge"><span class="hbadge-num counter" data-target="380" data-suffix="">380</span><span class="hbadge-label">조합원</span></div>
           <div class="hbadge"><span class="hbadge-num">3단계</span><span class="hbadge-label">진행현황</span></div>
-          <div class="hbadge"><span class="hbadge-num">202○</span><span class="hbadge-label">준공목표</span></div>
+          <div class="hbadge"><span class="hbadge-num counter" data-target="1214" data-suffix="">1,214</span><span class="hbadge-label">총세대수</span></div>
         </div>
       </div>
     </div>
@@ -418,6 +420,89 @@
     // 헤더 스크롤 쉐도우
     window.addEventListener('scroll', () => {
       document.getElementById('top').classList.toggle('scrolled', window.scrollY > 10);
+    });
+
+    // ── 파티클 배경 ──────────────────────────────────
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resizeCanvas() {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    for (let i = 0; i < 55; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.8 + 0.4,
+        dx: (Math.random() - 0.5) * 0.4,
+        dy: (Math.random() - 0.5) * 0.4,
+        o: Math.random() * 0.5 + 0.15
+      });
+    }
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(147,197,253,${p.o})`;
+        ctx.fill();
+        p.x += p.dx; p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.width)  p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      });
+      // 가까운 파티클 연결선
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(147,197,253,${0.12 * (1 - dist/100)})`;
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // ── 카운터 애니메이션 ────────────────────────────
+    function animateCounter(el) {
+      const target = parseInt(el.dataset.target);
+      const duration = 1800;
+      const start = performance.now();
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const val = Math.round(ease * target);
+        el.textContent = val.toLocaleString('ko-KR');
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+    const counterObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animateCounter(e.target); counterObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.counter').forEach(el => counterObs.observe(el));
+
+    // ── 스크롤 리빌 애니메이션 ───────────────────────
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('revealed'); revealObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.section-header, .about-card, .notice-row, .step, .ccard, .visual-block, .greeting-wrap').forEach(el => {
+      el.classList.add('reveal');
+      revealObs.observe(el);
     });
   </script>
 </body>
