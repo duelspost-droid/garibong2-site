@@ -355,12 +355,48 @@
   let notices = [];
   let fileSha = '';
 
-  // ── 인증 ──────────────────────────────────────────
-  function isLoggedIn() { return sessionStorage.getItem('admin_auth') === '1'; }
-  function getSavedToken() { return localStorage.getItem('gh_token_enc') || ''; }
-  function hasToken() { return !!getSavedToken(); }
+  // ── 보안 상수 ─────────────────────────────────────
+  const MAX_ATTEMPTS  = 5;      // 최대 로그인 시도 횟수
+  const LOCK_MINUTES  = 15;     // 잠금 시간 (분)
+  const SESSION_HOURS = 2;      // 세션 유효 시간 (시간)
 
-  // 화면 전환
+  // ── 인증 헬퍼 ─────────────────────────────────────
+  function isLoggedIn() {
+    if (sessionStorage.getItem('admin_auth') !== '1') return false;
+    // 세션 타임아웃 체크
+    const loginTime = parseInt(sessionStorage.getItem('login_time') || '0');
+    if (Date.now() - loginTime > SESSION_HOURS * 3600 * 1000) {
+      sessionStorage.clear();
+      return false;
+    }
+    return true;
+  }
+  function getSavedToken() { return localStorage.getItem('gh_token_enc') || ''; }
+  function hasToken()       { return !!getSavedToken(); }
+
+  // ── 로그인 시도 제한 ──────────────────────────────
+  function getAttempts()  { return parseInt(localStorage.getItem('login_attempts') || '0'); }
+  function getLockUntil() { return parseInt(localStorage.getItem('lock_until') || '0'); }
+  function isLocked()     { return Date.now() < getLockUntil(); }
+  function recordFail() {
+    const cnt = getAttempts() + 1;
+    localStorage.setItem('login_attempts', cnt);
+    if (cnt >= MAX_ATTEMPTS) {
+      const until = Date.now() + LOCK_MINUTES * 60 * 1000;
+      localStorage.setItem('lock_until', until);
+      localStorage.setItem('login_attempts', '0');
+    }
+  }
+  function clearFail() {
+    localStorage.removeItem('login_attempts');
+    localStorage.removeItem('lock_until');
+  }
+  function lockMsg() {
+    const rem = Math.ceil((getLockUntil() - Date.now()) / 60000);
+    return `비밀번호 오류가 ${MAX_ATTEMPTS}회 초과되어 ${rem}분간 잠겼습니다.`;
+  }
+
+  // ── 화면 전환 ─────────────────────────────────────
   window.showTokenSetup  = () => {
     document.getElementById('loginNormal').style.display = 'none';
     document.getElementById('loginSetup').style.display  = 'block';
@@ -371,45 +407,54 @@
     document.getElementById('loginSetup').style.display  = 'none';
     document.getElementById('loginErr').textContent = '';
   };
-
-  // 페이지 로드 시 토큰 유무에 따라 화면 결정
   if (!hasToken()) showTokenSetup();
 
-  // 일반 로그인 (비밀번호만)
+  // ── 일반 로그인 (비밀번호만) ──────────────────────
   window.doLogin = () => {
+    const err = document.getElementById('loginErr');
+    if (isLocked()) { err.textContent = lockMsg(); return; }
     const pw = document.getElementById('loginPw').value;
     if (pw !== getAdminPw()) {
-      document.getElementById('loginErr').textContent = '비밀번호가 틀렸습니다.'; return;
+      recordFail();
+      const cnt = getAttempts();
+      const rem = MAX_ATTEMPTS - cnt;
+      err.textContent = rem > 0
+        ? `비밀번호가 틀렸습니다. (${rem}회 남음)`
+        : lockMsg();
+      return;
     }
     if (!getSavedToken()) {
-      document.getElementById('loginErr').textContent = '먼저 GitHub 토큰 설정이 필요합니다.';
+      err.textContent = '먼저 GitHub 토큰 설정이 필요합니다.';
       showTokenSetup(); return;
     }
-    sessionStorage.setItem('admin_auth','1');
+    clearFail();
+    sessionStorage.setItem('admin_auth', '1');
+    sessionStorage.setItem('login_time', Date.now());
     sessionStorage.setItem('gh_token', atob(getSavedToken()));
     showAdmin();
   };
 
-  // 최초 설정 (비밀번호 + 토큰)
+  // ── 최초 설정 (비밀번호 + 토큰) ──────────────────
   window.doSetup = () => {
+    const err   = document.getElementById('loginErr');
+    if (isLocked()) { err.textContent = lockMsg(); return; }
     const pw    = document.getElementById('setupPw').value;
     const token = document.getElementById('setupToken').value.trim();
     if (pw !== getAdminPw()) {
-      document.getElementById('loginErr').textContent = '비밀번호가 틀렸습니다.'; return;
+      recordFail();
+      err.textContent = '비밀번호가 틀렸습니다.'; return;
     }
-    if (!token) {
-      document.getElementById('loginErr').textContent = 'GitHub 토큰을 입력해주세요.'; return;
-    }
-    // 토큰을 base64로 인코딩해 localStorage에 저장 (이 기기에 영구 저장)
+    if (!token) { err.textContent = 'GitHub 토큰을 입력해주세요.'; return; }
+    clearFail();
     localStorage.setItem('gh_token_enc', btoa(token));
-    sessionStorage.setItem('admin_auth','1');
+    sessionStorage.setItem('admin_auth', '1');
+    sessionStorage.setItem('login_time', Date.now());
     sessionStorage.setItem('gh_token', token);
     showAdmin();
   };
 
   window.doLogout = () => {
-    sessionStorage.removeItem('admin_auth');
-    sessionStorage.removeItem('gh_token');
+    sessionStorage.clear();
     location.reload();
   };
 
@@ -417,20 +462,35 @@
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('adminWrap').style.display = 'block';
     loadNotices();
+    startSessionTimer();
   }
 
   if (isLoggedIn()) showAdmin();
+  else { sessionStorage.clear(); }
+
+  // ── 세션 타이머 (자동 로그아웃) ──────────────────
+  function startSessionTimer() {
+    setInterval(() => {
+      if (!isLoggedIn()) {
+        showToast('세션이 만료되었습니다. 다시 로그인해주세요.', true);
+        setTimeout(() => { sessionStorage.clear(); location.reload(); }, 2000);
+      }
+    }, 60000); // 1분마다 체크
+  }
 
   // ── GitHub API ────────────────────────────────────
-  const ghHeaders = {
-    'Authorization': `Bearer ${sessionStorage.getItem('gh_token')}`,
-    'Accept': 'application/vnd.github+json',
-    'Content-Type': 'application/json'
-  };
+  // 매 요청 시 세션에서 토큰을 읽어 사용
+  function ghHeaders() {
+    return {
+      'Authorization': `Bearer ${sessionStorage.getItem('gh_token')}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
+  }
 
   async function loadNotices() {
     try {
-      const res  = await fetch(GH_API, { headers: ghHeaders });
+      const res  = await fetch(GH_API, { headers: ghHeaders() });
       const data = await res.json();
       fileSha  = data.sha;
       notices  = JSON.parse(atob(data.content.replace(/\n/g,'')));
@@ -446,7 +506,7 @@
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(notices, null, 2))));
       const res = await fetch(GH_API, {
         method: 'PUT',
-        headers: ghHeaders,
+        headers: ghHeaders(),
         body: JSON.stringify({ message: msg, content, sha: fileSha })
       });
       if (!res.ok) throw new Error(await res.text());
