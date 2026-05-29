@@ -158,6 +158,18 @@
     .toast.show { transform: translateY(0); opacity: 1; }
     .toast.err  { background: #ef4444; }
 
+    .tab-bar {
+      background: #fff; border-bottom: 1px solid #e2e8f0;
+      display: flex; gap: 0; padding: 0 28px;
+    }
+    .tab-btn {
+      background: none; border: none; border-bottom: 3px solid transparent;
+      padding: 14px 20px; font-size: 14px; font-weight: 600; color: #94a3b8;
+      cursor: pointer; transition: all .15s; margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: #0d2461; }
+    .tab-btn.active { color: #0d2461; border-bottom-color: #0d2461; }
+
     .btn-setting {
       background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0;
       border-radius: 9px; padding: 11px 20px; font-size: 14px; font-weight: 600;
@@ -222,7 +234,7 @@
 <div class="admin-wrap" id="adminWrap">
   <div class="admin-header">
     <div class="admin-header-left">
-      <h1>📋 공지사항 관리</h1>
+      <h1>⚙️ 가리봉2구역 관리자</h1>
     </div>
     <div class="head-right">
       <a href="index.html" target="_blank">← 홈페이지</a>
@@ -230,7 +242,17 @@
     </div>
   </div>
 
+  <!-- 탭 메뉴 -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('notice')">📋 공지사항</button>
+    <button class="tab-btn" onclick="switchTab('content')">✏️ 홈페이지 내용</button>
+    <button class="tab-btn" onclick="switchTab('setting')">⚙️ 설정</button>
+  </div>
+
   <div class="admin-body">
+
+    <!-- ══ 공지사항 탭 ══ -->
+    <div id="tab-notice">
     <!-- 새 공지 등록 -->
     <div class="card">
       <div class="card-title">✏️ 새 공지 등록</div>
@@ -271,8 +293,72 @@
       </div>
       <div id="noticeList"><div class="empty">⏳ 불러오는 중...</div></div>
     </div>
+    </div><!-- /tab-notice -->
 
-    <!-- 설정 -->
+    <!-- ══ 홈페이지 내용 탭 ══ -->
+    <div id="tab-content" style="display:none">
+    <div class="card">
+      <div class="card-title">🏠 히어로 섹션</div>
+      <div class="form-row"><div class="field"><label>태그라인</label><input class="finput" id="ct-hero-tag"/></div></div>
+      <div class="form-row">
+        <div class="field"><label>제목 1줄</label><input class="finput" id="ct-hero-title1"/></div>
+        <div class="field"><label>제목 강조(파란색)</label><input class="finput" id="ct-hero-title2"/></div>
+      </div>
+      <div class="form-row"><div class="field"><label>설명 (줄바꿈: \n)</label><input class="finput" id="ct-hero-desc"/></div></div>
+      <div class="form-row">
+        <div class="field"><label>조합원 수 (숫자)</label><input class="finput" id="ct-badge-members"/></div>
+        <div class="field"><label>진행단계</label><input class="finput" id="ct-badge-stage"/></div>
+        <div class="field"><label>총세대수 (숫자,콤마)</label><input class="finput" id="ct-badge-units"/></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏢 조합 소개</div>
+      <div class="form-row"><div class="field"><label>구역 소개 문구</label><textarea class="finput ftextarea" id="ct-about-intro" style="min-height:80px"></textarea></div></div>
+      <div class="form-row">
+        <div class="field"><label>조합명 (줄바꿈: \n)</label><input class="finput" id="ct-about-name"/></div>
+        <div class="field"><label>위치 (줄바꿈: \n)</label><input class="finput" id="ct-about-location"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>조합 설립일</label><input class="finput" id="ct-about-founded"/></div>
+        <div class="field"><label>조합원 수</label><input class="finput" id="ct-about-members"/></div>
+        <div class="field"><label>구역 면적</label><input class="finput" id="ct-about-area"/></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👤 조합장 인사말</div>
+      <div class="form-row">
+        <div class="field"><label>조합장 이름</label><input class="finput" id="ct-greeting-chairman"/></div>
+        <div class="field"><label>소속</label><input class="finput" id="ct-greeting-position"/></div>
+      </div>
+      <div class="form-row"><div class="field"><label>인사말 1단락</label><input class="finput" id="ct-greeting-p1"/></div></div>
+      <div class="form-row"><div class="field"><label>인사말 2단락</label><textarea class="finput ftextarea" id="ct-greeting-p2" style="min-height:80px"></textarea></div></div>
+      <div class="form-row"><div class="field"><label>인사말 3단락</label><textarea class="finput ftextarea" id="ct-greeting-p3" style="min-height:80px"></textarea></div></div>
+      <div class="form-row"><div class="field"><label>인사말 4단락</label><textarea class="finput ftextarea" id="ct-greeting-p4" style="min-height:80px"></textarea></div></div>
+      <div class="form-row"><div class="field"><label>인사말 5단락 (마무리)</label><input class="finput" id="ct-greeting-p5"/></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📞 문의 / 연락처</div>
+      <div class="form-row">
+        <div class="field"><label>대표전화</label><input class="finput" id="ct-contact-phone"/></div>
+        <div class="field"><label>운영시간</label><input class="finput" id="ct-contact-hours"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>이메일</label><input class="finput" id="ct-contact-email"/></div>
+        <div class="field"><label>사무소 주소 (짧게)</label><input class="finput" id="ct-contact-address"/></div>
+        <div class="field"><label>사무소 주소 (전체)</label><input class="finput" id="ct-contact-address-full"/></div>
+      </div>
+    </div>
+
+    <div style="text-align:right; margin-bottom:32px;">
+      <button class="btn-submit" onclick="saveContent()">💾 전체 저장하기</button>
+    </div>
+    </div><!-- /tab-content -->
+
+    <!-- ══ 설정 탭 ══ -->
+    <div id="tab-setting" style="display:none">
     <div class="card">
       <div class="card-title">⚙️ 관리자 설정</div>
       <div style="display:flex; gap:12px; flex-wrap:wrap;">
@@ -280,6 +366,7 @@
         <button class="btn-setting btn-danger" onclick="resetToken()">🔄 GitHub 토큰 재설정</button>
       </div>
     </div>
+    </div><!-- /tab-setting -->
   </div>
 </div>
 
@@ -356,8 +443,9 @@
 
 <script>
   // ── 설정 ───────────────────────────────────────────
-  const REPO   = 'duelspost-droid/garibong2-site';
-  const FILE   = 'notices.json';
+  const REPO         = 'duelspost-droid/garibong2-site';
+  const FILE         = 'notices.json';
+  const CONTENT_FILE = 'content.json';
   const GH_API = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
   const DEFAULT_PW = 'garibong2024!';
   // 비밀번호: localStorage에 저장된 값 우선, 없으면 기본값
@@ -622,6 +710,102 @@
     closeModal(); renderList();
     showToast('✅ 수정되었습니다');
   };
+
+  // ── 탭 전환 ──────────────────────────────────────
+  window.switchTab = (tab) => {
+    ['notice','content','setting'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', ['notice','content','setting'][i] === tab);
+    });
+    if (tab === 'content') loadContent();
+  };
+
+  // ── content.json 로드 ─────────────────────────────
+  let contentSha = '';
+  async function loadContent() {
+    try {
+      const res  = await fetch(`https://api.github.com/repos/${REPO}/contents/${CONTENT_FILE}`, { headers: ghHeaders() });
+      const data = await res.json();
+      contentSha = data.sha;
+      const c = JSON.parse(b64toUtf8(data.content));
+      // 히어로
+      v('ct-hero-tag',     c.hero?.tag);
+      v('ct-hero-title1',  c.hero?.title1);
+      v('ct-hero-title2',  c.hero?.title2);
+      v('ct-hero-desc',    c.hero?.desc);
+      v('ct-badge-members',c.hero?.badge_members);
+      v('ct-badge-stage',  c.hero?.badge_stage);
+      v('ct-badge-units',  c.hero?.badge_units);
+      // 조합 소개
+      v('ct-about-intro',   c.about?.intro);
+      v('ct-about-name',    c.about?.name);
+      v('ct-about-location',c.about?.location);
+      v('ct-about-founded', c.about?.founded);
+      v('ct-about-members', c.about?.members);
+      v('ct-about-area',    c.about?.area);
+      // 인사말
+      v('ct-greeting-chairman', c.greeting?.chairman);
+      v('ct-greeting-position', c.greeting?.position);
+      v('ct-greeting-p1', c.greeting?.p1);
+      v('ct-greeting-p2', c.greeting?.p2);
+      v('ct-greeting-p3', c.greeting?.p3);
+      v('ct-greeting-p4', c.greeting?.p4);
+      v('ct-greeting-p5', c.greeting?.p5);
+      // 문의
+      v('ct-contact-phone',       c.contact?.phone);
+      v('ct-contact-hours',       c.contact?.hours);
+      v('ct-contact-email',       c.contact?.email);
+      v('ct-contact-address',     c.contact?.address);
+      v('ct-contact-address-full',c.contact?.address_full);
+    } catch(e) { showToast('콘텐츠 불러오기 실패: ' + e.message, true); }
+  }
+  function v(id, val) { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; }
+
+  // ── content.json 저장 ─────────────────────────────
+  window.saveContent = async () => {
+    const c = {
+      hero: {
+        tag: g('ct-hero-tag'), title1: g('ct-hero-title1'), title2: g('ct-hero-title2'),
+        desc: g('ct-hero-desc'), badge_members: g('ct-badge-members'),
+        badge_stage: g('ct-badge-stage'), badge_units: g('ct-badge-units')
+      },
+      about: {
+        intro: g('ct-about-intro'), name: g('ct-about-name'), location: g('ct-about-location'),
+        founded: g('ct-about-founded'), members: g('ct-about-members'), area: g('ct-about-area')
+      },
+      greeting: {
+        chairman: g('ct-greeting-chairman'), position: g('ct-greeting-position'),
+        p1: g('ct-greeting-p1'), p2: g('ct-greeting-p2'), p3: g('ct-greeting-p3'),
+        p4: g('ct-greeting-p4'), p5: g('ct-greeting-p5')
+      },
+      contact: {
+        phone: g('ct-contact-phone'), hours: g('ct-contact-hours'),
+        email: g('ct-contact-email'), address: g('ct-contact-address'),
+        address_full: g('ct-contact-address-full')
+      },
+      footer: {
+        address: g('ct-contact-address-full'),
+        phone: g('ct-contact-phone'),
+        email: g('ct-contact-email')
+      }
+    };
+    document.getElementById('savingOverlay').classList.add('show');
+    try {
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(c, null, 2))));
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${CONTENT_FILE}`, {
+        method: 'PUT', headers: ghHeaders(),
+        body: JSON.stringify({ message: '홈페이지 콘텐츠 수정', content, sha: contentSha })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      contentSha = data.content.sha;
+      showToast('✅ 홈페이지 내용이 저장되었습니다');
+    } catch(e) { showToast('저장 실패: ' + e.message, true); }
+    document.getElementById('savingOverlay').classList.remove('show');
+  };
+  function g(id) { const el = document.getElementById(id); return el ? el.value : ''; }
 
   // ── 비밀번호 변경 ─────────────────────────────────
   window.openPwModal  = () => {
