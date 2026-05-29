@@ -405,8 +405,7 @@
           <div class="ccard">
             <div class="ccard-icon">📮</div>
             <h4>사무소 위치</h4>
-            <p class="ccard-main" id="c-contact-address">구로구 구로동로 17-1, 3층</p>
-            <p class="ccard-sub" id="c-contact-address2">서울특별시</p>
+            <p class="ccard-main" id="c-contact-address">서울 구로구 구로동로 17-1, 3층</p>
           </div>
         </div>
         <div class="contact-map">
@@ -490,8 +489,7 @@
         setText('c-contact-phone',   c.contact?.phone);
         setText('c-contact-hours',   c.contact?.hours);
         setText('c-contact-email',   c.contact?.email);
-        setText('c-contact-address', c.contact?.address);
-        setText('c-contact-address2',c.contact?.address_full?.split(' ').slice(0,3).join(' '));
+        setText('c-contact-address', c.contact?.address_full || c.contact?.address);
         // 푸터
         if (c.footer) {
           const fi = document.getElementById('c-footer-info');
