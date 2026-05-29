@@ -218,6 +218,72 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 .sec-head.light p { color: rgba(255,255,255,.6); }
 
 /* ════════════════════════════════════════════════════
+   VISUAL (위치도 & 조감도)
+   ════════════════════════════════════════════════════ */
+.visual-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 6vw, 72px);
+  align-items: center;
+}
+.visual-block.reverse { direction: rtl; }
+.visual-block.reverse > * { direction: ltr; }
+
+.visual-text .sec-tag { margin-bottom: 12px; }
+.visual-text h2 {
+  font-size: var(--fs-h2); font-weight: 900;
+  letter-spacing: -.5px; color: var(--navy);
+  margin-bottom: 14px;
+}
+.visual-text p {
+  font-size: var(--fs-base); color: var(--gray600);
+  line-height: 1.85; margin-bottom: 22px;
+}
+.visual-list {
+  list-style: none; display: flex; flex-direction: column; gap: 10px;
+}
+.visual-list li {
+  font-size: var(--fs-base); color: var(--gray600);
+  display: flex; align-items: center; gap: 10px;
+  background: var(--gray50); border: 1px solid var(--gray200);
+  border-radius: 8px; padding: 10px 16px;
+}
+
+.visual-img-wrap {
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: 0 12px 48px rgba(13,36,97,.14);
+  border: 1px solid var(--gray200);
+  position: relative;
+}
+.visual-img {
+  width: 100%; height: clamp(220px, 32vw, 420px);
+  object-fit: cover; display: block;
+  transition: transform .4s;
+}
+.visual-img-wrap:hover .visual-img { transform: scale(1.03); }
+.img-caption {
+  background: rgba(13,36,97,.75); color: #fff;
+  font-size: 12px; font-weight: 600; padding: 8px 16px;
+  backdrop-filter: blur(6px);
+}
+
+/* 이미지 로드 실패 시 플레이스홀더 */
+.visual-img-wrap.img-missing .visual-img { display: none; }
+.visual-img-wrap.img-missing::before {
+  content: '🖼️ 이미지를 map.jpg / render.jpg 이름으로\A garibong2-site 폴더에 넣어주세요';
+  white-space: pre;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  height: clamp(220px, 32vw, 420px);
+  background: var(--gray100); color: var(--gray400);
+  font-size: 13px; line-height: 1.8;
+}
+
+.visual-divider {
+  height: 1px; background: var(--gray200);
+  margin: clamp(48px, 7vw, 80px) 0;
+}
+
+/* ════════════════════════════════════════════════════
    ABOUT
    ════════════════════════════════════════════════════ */
 .about-grid {
@@ -372,6 +438,10 @@ footer { background: #0f1e2f; }
   .hero-visual { order: -1; }
   .hero-tag { display: inline-block; }
   .hero-btns { justify-content: center; }
+
+  /* Visual: stack on tablet */
+  .visual-block, .visual-block.reverse { grid-template-columns: 1fr; direction: ltr; }
+  .visual-block.reverse .visual-img-wrap { order: -1; }
 
   /* About: 2 cols, wide card spans all */
   .about-grid { grid-template-columns: 1fr 1fr; }
