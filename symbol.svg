@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#0d2461"/>
+    </linearGradient>
+    <linearGradient id="buildGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#bfdbfe" stop-opacity="1"/>
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <clipPath id="circleClip">
+      <circle cx="60" cy="60" r="56"/>
+    </clipPath>
+  </defs>
+
+  <!-- 배경 원 -->
+  <circle cx="60" cy="60" r="56" fill="url(#skyGrad)"/>
+
+  <!-- 지평선 위 새벽빛 글로우 -->
+  <ellipse cx="60" cy="78" rx="44" ry="10" fill="#2563eb" opacity="0.5" clip-path="url(#circleClip)"/>
+
+  <!-- 태양 (반원) -->
+  <path d="M38 78 A22 22 0 0 1 82 78" fill="url(#sunGrad)" clip-path="url(#circleClip)"/>
+
+  <!-- 태양 광선 -->
+  <g stroke="#fcd34d" stroke-width="1.8" stroke-linecap="round" opacity="0.85">
+    <line x1="60" y1="48" x2="60" y2="42"/>
+    <line x1="72" y1="51.7" x2="75.2" y2="46.4"/>
+    <line x1="47.8" y1="51.7" x2="44.8" y2="46.4"/>
+    <line x1="79"  y1="63" x2="84.5" y2="61"/>
+    <line x1="41"  y1="63" x2="35.5" y2="61"/>
+  </g>
+
+  <!-- 메인 타워 (중앙 고층) -->
+  <rect x="51" y="38" width="18" height="40" rx="2" fill="url(#buildGrad)" clip-path="url(#circleClip)"/>
+  <!-- 타워 창문 -->
+  <g fill="#bfdbfe" opacity="0.7">
+    <rect x="54" y="42" width="4" height="3" rx="0.5"/>
+    <rect x="62" y="42" width="4" height="3" rx="0.5"/>
+    <rect x="54" y="48" width="4" height="3" rx="0.5"/>
+    <rect x="62" y="48" width="4" height="3" rx="0.5"/>
+    <rect x="54" y="54" width="4" height="3" rx="0.5"/>
+    <rect x="62" y="54" width="4" height="3" rx="0.5"/>
+    <rect x="54" y="60" width="4" height="3" rx="0.5"/>
+    <rect x="62" y="60" width="4" height="3" rx="0.5"/>
+  </g>
+  <!-- 타워 꼭대기 포인트 -->
+  <polygon points="60,30 67,38 53,38" fill="#93c5fd"/>
+
+  <!-- 왼쪽 보조 건물 -->
+  <rect x="36" y="50" width="13" height="28" rx="1.5" fill="white" opacity="0.75" clip-path="url(#circleClip)"/>
+  <g fill="#bfdbfe" opacity="0.6">
+    <rect x="38.5" y="53" width="3" height="2.5" rx="0.4"/>
+    <rect x="43.5" y="53" width="3" height="2.5" rx="0.4"/>
+    <rect x="38.5" y="58" width="3" height="2.5" rx="0.4"/>
+    <rect x="43.5" y="58" width="3" height="2.5" rx="0.4"/>
+    <rect x="38.5" y="63" width="3" height="2.5" rx="0.4"/>
+    <rect x="43.5" y="63" width="3" height="2.5" rx="0.4"/>
+  </g>
+
+  <!-- 오른쪽 보조 건물 -->
+  <rect x="71" y="53" width="13" height="25" rx="1.5" fill="white" opacity="0.75" clip-path="url(#circleClip)"/>
+  <g fill="#bfdbfe" opacity="0.6">
+    <rect x="73.5" y="56" width="3" height="2.5" rx="0.4"/>
+    <rect x="78.5" y="56" width="3" height="2.5" rx="0.4"/>
+    <rect x="73.5" y="61" width="3" height="2.5" rx="0.4"/>
+    <rect x="78.5" y="61" width="3" height="2.5" rx="0.4"/>
+    <rect x="73.5" y="66" width="3" height="2.5" rx="0.4"/>
+    <rect x="78.5" y="66" width="3" height="2.5" rx="0.4"/>
+  </g>
+
+  <!-- 지면 라인 -->
+  <rect x="4" y="78" width="112" height="3" fill="#1e3a6e" clip-path="url(#circleClip)"/>
+
+  <!-- 원 테두리 -->
+  <circle cx="60" cy="60" r="56" stroke="#2563eb" stroke-width="3" fill="none"/>
+  <circle cx="60" cy="60" r="53" stroke="white" stroke-width="0.6" stroke-opacity="0.15" fill="none"/>
+</svg>
