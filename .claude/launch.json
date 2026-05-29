@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "garibong2-site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3000", "C:\\Users\\duels\\Desktop\\garibong2-site"],
+      "port": 3000
+    }
+  ]
+}
