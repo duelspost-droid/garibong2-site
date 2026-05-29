@@ -171,18 +171,37 @@
     <div class="login-logo">🏢</div>
     <h1>가리봉2구역 재개발조합</h1>
     <p>공지사항 관리자 페이지</p>
-    <div class="input-group">
-      <label>관리자 비밀번호</label>
-      <input type="password" id="loginPw" placeholder="비밀번호 입력"
-             onkeydown="if(event.key==='Enter') doLogin()"/>
+
+    <!-- 일반 로그인 (토큰이 이미 저장된 경우) -->
+    <div id="loginNormal">
+      <div class="input-group">
+        <label>관리자 비밀번호</label>
+        <input type="password" id="loginPw" placeholder="비밀번호 입력"
+               onkeydown="if(event.key==='Enter') doLogin()"/>
+      </div>
+      <button class="btn-login" onclick="doLogin()">로그인</button>
+      <p style="font-size:11px;color:#94a3b8;margin-top:12px;cursor:pointer;" onclick="showTokenSetup()">
+        🔧 처음 설정하거나 토큰을 변경하려면 클릭
+      </p>
     </div>
-    <div class="input-group">
-      <label>GitHub 토큰</label>
-      <input type="password" id="loginToken" placeholder="ghp_... 또는 gho_..."
-             onkeydown="if(event.key==='Enter') doLogin()"/>
-      <p class="input-hint">GitHub Settings → Developer settings → Personal access tokens 에서 발급<br>(repo 권한 필요 / 브라우저 닫으면 자동 삭제)</p>
+
+    <!-- 최초 설정 (토큰 입력) -->
+    <div id="loginSetup" style="display:none">
+      <div class="input-group">
+        <label>관리자 비밀번호</label>
+        <input type="password" id="setupPw" placeholder="비밀번호 입력"/>
+      </div>
+      <div class="input-group">
+        <label>GitHub 토큰 (최초 1회만 입력)</label>
+        <input type="password" id="setupToken" placeholder="gho_... 또는 ghp_..."/>
+        <p class="input-hint">이 브라우저에 안전하게 저장됩니다. 이후엔 비밀번호만 입력하면 됩니다.</p>
+      </div>
+      <button class="btn-login" onclick="doSetup()">설정 완료 및 로그인</button>
+      <p style="font-size:11px;color:#94a3b8;margin-top:12px;cursor:pointer;" onclick="showNormalLogin()">
+        ← 일반 로그인으로 돌아가기
+      </p>
     </div>
-    <button class="btn-login" onclick="doLogin()">로그인</button>
+
     <p class="login-err" id="loginErr"></p>
   </div>
 </div>
@@ -288,22 +307,59 @@
 
   // ── 인증 ──────────────────────────────────────────
   function isLoggedIn() { return sessionStorage.getItem('admin_auth') === '1'; }
+  function getSavedToken() { return localStorage.getItem('gh_token_enc') || ''; }
+  function hasToken() { return !!getSavedToken(); }
 
+  // 화면 전환
+  window.showTokenSetup  = () => {
+    document.getElementById('loginNormal').style.display = 'none';
+    document.getElementById('loginSetup').style.display  = 'block';
+    document.getElementById('loginErr').textContent = '';
+  };
+  window.showNormalLogin = () => {
+    document.getElementById('loginNormal').style.display = 'block';
+    document.getElementById('loginSetup').style.display  = 'none';
+    document.getElementById('loginErr').textContent = '';
+  };
+
+  // 페이지 로드 시 토큰 유무에 따라 화면 결정
+  if (!hasToken()) showTokenSetup();
+
+  // 일반 로그인 (비밀번호만)
   window.doLogin = () => {
-    const pw    = document.getElementById('loginPw').value;
-    const token = document.getElementById('loginToken').value.trim();
+    const pw = document.getElementById('loginPw').value;
+    if (pw !== ADMIN_PW) {
+      document.getElementById('loginErr').textContent = '비밀번호가 틀렸습니다.'; return;
+    }
+    if (!getSavedToken()) {
+      document.getElementById('loginErr').textContent = '먼저 GitHub 토큰 설정이 필요합니다.';
+      showTokenSetup(); return;
+    }
+    sessionStorage.setItem('admin_auth','1');
+    sessionStorage.setItem('gh_token', atob(getSavedToken()));
+    showAdmin();
+  };
+
+  // 최초 설정 (비밀번호 + 토큰)
+  window.doSetup = () => {
+    const pw    = document.getElementById('setupPw').value;
+    const token = document.getElementById('setupToken').value.trim();
     if (pw !== ADMIN_PW) {
       document.getElementById('loginErr').textContent = '비밀번호가 틀렸습니다.'; return;
     }
     if (!token) {
       document.getElementById('loginErr').textContent = 'GitHub 토큰을 입력해주세요.'; return;
     }
+    // 토큰을 base64로 인코딩해 localStorage에 저장 (이 기기에 영구 저장)
+    localStorage.setItem('gh_token_enc', btoa(token));
     sessionStorage.setItem('admin_auth','1');
     sessionStorage.setItem('gh_token', token);
     showAdmin();
   };
+
   window.doLogout = () => {
     sessionStorage.removeItem('admin_auth');
+    sessionStorage.removeItem('gh_token');
     location.reload();
   };
 
