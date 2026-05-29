@@ -218,6 +218,59 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 .sec-head.light p { color: rgba(255,255,255,.6); }
 
 /* ════════════════════════════════════════════════════
+   GREETING (조합장 인사말)
+   ════════════════════════════════════════════════════ */
+.greeting-wrap {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: clamp(40px, 6vw, 80px);
+  align-items: start;
+}
+.greeting-photo {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 20px; position: sticky; top: 90px;
+}
+.photo-circle {
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(140px, 18vw, 200px);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 4px solid var(--gray200);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 32px rgba(13,36,97,.12);
+}
+.photo-icon { font-size: clamp(52px, 8vw, 80px); }
+.greeting-name { text-align: center; }
+.greeting-name strong { display: block; font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+.greeting-name span  { font-size: 12px; color: var(--gray400); line-height: 1.6; }
+
+.greeting-content .sec-tag { margin-bottom: 12px; }
+.greeting-content h2 {
+  font-size: var(--fs-h2); font-weight: 900; color: var(--navy);
+  letter-spacing: -.5px; margin-bottom: 24px;
+}
+.greeting-quote {
+  font-size: 80px; line-height: .8; color: #bfdbfe;
+  font-family: Georgia, serif; font-weight: 900;
+  margin-bottom: -10px;
+}
+.greeting-text {
+  border-left: 3px solid #bfdbfe;
+  padding: 20px 0 20px 28px;
+  display: flex; flex-direction: column; gap: 14px;
+  margin-bottom: 32px;
+}
+.greeting-text p { font-size: var(--fs-base); color: var(--gray600); line-height: 1.9; }
+.greeting-text p:first-child { font-size: var(--fs-lg); font-weight: 600; color: var(--navy); }
+
+.greeting-sig {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  padding-top: 24px; border-top: 1px solid var(--gray200);
+}
+.greeting-sig span  { font-size: 13px; color: var(--gray400); }
+.greeting-sig strong { font-size: 16px; color: var(--navy); font-weight: 800; }
+
+/* ════════════════════════════════════════════════════
    VISUAL (위치도 & 조감도)
    ════════════════════════════════════════════════════ */
 .visual-block {
@@ -438,6 +491,13 @@ footer { background: #0f1e2f; }
   .hero-visual { order: -1; }
   .hero-tag { display: inline-block; }
   .hero-btns { justify-content: center; }
+
+  /* Greeting: stack on tablet */
+  .greeting-wrap { grid-template-columns: 1fr; }
+  .greeting-photo { position: static; flex-direction: row; justify-content: flex-start; gap: 20px; }
+  .photo-circle { width: 100px; height: 100px; flex-shrink: 0; }
+  .photo-icon { font-size: 40px; }
+  .greeting-name { text-align: left; }
 
   /* Visual: stack on tablet */
   .visual-block, .visual-block.reverse { grid-template-columns: 1fr; direction: ltr; }
