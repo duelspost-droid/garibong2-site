@@ -74,6 +74,7 @@
     .form-row { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
     .field { flex: 1; min-width: 140px; }
     .field label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 5px; }
+    .ftextarea { min-height: 120px; resize: vertical; line-height: 1.7; }
     select, .finput {
       width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 9px;
       font-size: 14px; font-family: inherit; outline: none; transition: border .2s; background: #f8fafc;
@@ -105,9 +106,11 @@
     .b-notice { background: #eff6ff; color: #2563eb; }
     .b-guide  { background: #f0fdf4; color: #16a34a; }
     .notice-body { flex: 1; min-width: 0; }
-    .notice-body strong { font-size: 14px; color: #1e293b; display: block; margin-bottom: 3px; }
-    .notice-body small  { font-size: 12px; color: #94a3b8; }
-    .notice-body p      { font-size: 13px; color: #475569; margin-top: 4px; }
+    .notice-body strong        { font-size: 14px; color: #1e293b; display: block; margin-bottom: 3px; }
+    .notice-body small         { font-size: 12px; color: #94a3b8; }
+    .notice-body .sub-text     { font-size: 13px; color: #475569; margin-top: 4px; }
+    .notice-body .content-preview { font-size: 12px; color: #94a3b8; margin-top: 4px; line-height: 1.5; }
+    .notice-body .content-missing { font-size: 12px; color: #f59e0b; margin-top: 4px; }
     .item-actions { display: flex; gap: 7px; flex-shrink: 0; }
     .btn-e {
       background: #f1f5f9; color: #475569; border: none; border-radius: 7px;
@@ -247,8 +250,14 @@
       </div>
       <div class="form-row">
         <div class="field">
-          <label>부제목 / 상세내용 (선택)</label>
+          <label>부제목 <span style="color:#94a3b8;font-weight:400">(예: 일시 / 장소 등 한 줄 요약)</span></label>
           <input class="finput" id="nSub" placeholder="예) 일시: 2026년 ○월 ○일 / 장소: ○○"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>본문 내용 *</label>
+          <textarea class="finput ftextarea" id="nContent" placeholder="공지 본문 내용을 입력하세요. 줄바꿈도 그대로 반영됩니다."></textarea>
         </div>
       </div>
       <button class="btn-submit" id="btnAdd" onclick="addNotice()">등록하기</button>
@@ -297,6 +306,12 @@
       <div class="field">
         <label>부제목</label>
         <input class="finput" id="eSub"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>본문 내용 *</label>
+        <textarea class="finput ftextarea" id="eContent"></textarea>
       </div>
     </div>
     <div class="modal-btns">
@@ -538,7 +553,8 @@
         <div class="notice-body">
           <strong>${n.title}</strong>
           <small>${n.date||''}</small>
-          ${n.sub ? `<p>${n.sub}</p>` : ''}
+          ${n.sub ? `<p class="sub-text">${n.sub}</p>` : ''}
+          ${n.content ? `<p class="content-preview">${n.content.replace(/\n/g,'<br>').slice(0,80)}${n.content.length>80?'…':''}</p>` : '<p class="content-missing">⚠️ 본문 없음</p>'}
         </div>
         <div class="item-actions">
           <button class="btn-e" onclick="openEdit(${i})">수정</button>
@@ -549,22 +565,26 @@
 
   // ── CRUD ──────────────────────────────────────────
   window.addNotice = async () => {
-    const title = document.getElementById('nTitle').value.trim();
-    if (!title) { showToast('제목을 입력해주세요', true); return; }
+    const title   = document.getElementById('nTitle').value.trim();
+    const content = document.getElementById('nContent').value.trim();
+    if (!title)   { showToast('제목을 입력해주세요', true); return; }
+    if (!content) { showToast('본문 내용을 입력해주세요', true); return; }
     const btn = document.getElementById('btnAdd');
     btn.disabled = true; btn.textContent = '등록 중...';
     const today = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})
       .replace(/\. /g,'.').slice(0,-1);
     notices.unshift({
       id: Date.now(),
-      badge: document.getElementById('nBadge').value,
+      badge:   document.getElementById('nBadge').value,
       title,
-      sub: document.getElementById('nSub').value.trim(),
-      date: today
+      sub:     document.getElementById('nSub').value.trim(),
+      content,
+      date:    today
     });
     await saveNotices('공지 추가: ' + title);
-    document.getElementById('nTitle').value = '';
-    document.getElementById('nSub').value   = '';
+    document.getElementById('nTitle').value   = '';
+    document.getElementById('nSub').value     = '';
+    document.getElementById('nContent').value = '';
     renderList();
     showToast('✅ 공지가 등록되었습니다');
     btn.disabled = false; btn.textContent = '등록하기';
@@ -580,20 +600,24 @@
   };
 
   window.openEdit = (i) => {
-    document.getElementById('eIdx').value   = i;
-    document.getElementById('eBadge').value = notices[i].badge;
-    document.getElementById('eTitle').value = notices[i].title;
-    document.getElementById('eSub').value   = notices[i].sub || '';
+    document.getElementById('eIdx').value     = i;
+    document.getElementById('eBadge').value   = notices[i].badge;
+    document.getElementById('eTitle').value   = notices[i].title;
+    document.getElementById('eSub').value     = notices[i].sub || '';
+    document.getElementById('eContent').value = notices[i].content || '';
     document.getElementById('editModal').classList.add('open');
   };
   window.closeModal = () => document.getElementById('editModal').classList.remove('open');
   window.saveEdit   = async () => {
-    const i = parseInt(document.getElementById('eIdx').value);
-    const title = document.getElementById('eTitle').value.trim();
-    if (!title) { showToast('제목을 입력해주세요', true); return; }
-    notices[i].badge = document.getElementById('eBadge').value;
-    notices[i].title = title;
-    notices[i].sub   = document.getElementById('eSub').value.trim();
+    const i       = parseInt(document.getElementById('eIdx').value);
+    const title   = document.getElementById('eTitle').value.trim();
+    const content = document.getElementById('eContent').value.trim();
+    if (!title)   { showToast('제목을 입력해주세요', true); return; }
+    if (!content) { showToast('본문 내용을 입력해주세요', true); return; }
+    notices[i].badge   = document.getElementById('eBadge').value;
+    notices[i].title   = title;
+    notices[i].sub     = document.getElementById('eSub').value.trim();
+    notices[i].content = content;
     await saveNotices('공지 수정: ' + title);
     closeModal(); renderList();
     showToast('✅ 수정되었습니다');

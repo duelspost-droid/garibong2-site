@@ -245,16 +245,51 @@
     </div>
   </section>
 
+  <!-- 공지 상세 팝업 -->
+  <div id="noticeModal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.5);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;border-radius:16px;padding:36px;max-width:560px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.2);">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <span id="modalBadge" style="display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;background:#eff6ff;color:#2563eb;margin-bottom:10px;"></span>
+          <h3 id="modalTitle" style="font-size:20px;font-weight:800;color:#0d2461;line-height:1.4;"></h3>
+        </div>
+        <button onclick="document.getElementById('noticeModal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;padding:4px;flex-shrink:0;margin-left:12px;">✕</button>
+      </div>
+      <p id="modalSub" style="font-size:13px;color:#2563eb;font-weight:600;margin-bottom:16px;padding:10px 14px;background:#eff6ff;border-radius:8px;display:none;"></p>
+      <div id="modalContent" style="font-size:15px;color:#475569;line-height:1.9;white-space:pre-wrap;border-top:1px solid #f1f5f9;padding-top:18px;"></div>
+      <p id="modalDate" style="font-size:12px;color:#94a3b8;margin-top:20px;text-align:right;"></p>
+    </div>
+  </div>
+
   <!-- 공지사항 동적 로드 -->
   <script>
     const badgeLabel = { new:'NEW', notice:'공지', guide:'안내' };
+    const badgeColors = { new:'background:#fef3c7;color:#d97706', notice:'background:#eff6ff;color:#2563eb', guide:'background:#f0fdf4;color:#16a34a' };
+
+    function openNotice(n) {
+      const modal = document.getElementById('noticeModal');
+      document.getElementById('modalBadge').textContent    = badgeLabel[n.badge]||n.badge;
+      document.getElementById('modalBadge').style.cssText += ';' + (badgeColors[n.badge]||'');
+      document.getElementById('modalTitle').textContent    = n.title;
+      const subEl = document.getElementById('modalSub');
+      if (n.sub) { subEl.textContent = n.sub; subEl.style.display = 'block'; }
+      else         { subEl.style.display = 'none'; }
+      document.getElementById('modalContent').textContent = n.content || '(본문 없음)';
+      document.getElementById('modalDate').textContent    = n.date ? '등록일: ' + n.date : '';
+      modal.style.display = 'flex';
+    }
+    // 배경 클릭 시 닫기
+    document.getElementById('noticeModal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+
     fetch('./notices.json?t=' + Date.now())
       .then(r => r.json())
       .then(data => {
         if (!data || !data.length) return;
         const list = document.getElementById('noticeList');
-        list.innerHTML = data.map(n => `
-          <a href="#" class="notice-row">
+        list.innerHTML = data.map((n,i) => `
+          <a href="#" class="notice-row" onclick="event.preventDefault();openNotice(${JSON.stringify(n).replace(/"/g,'&quot;')})">
             <span class="nbadge${n.badge==='new'?' new':''}">${badgeLabel[n.badge]||n.badge}</span>
             <div class="notice-body">
               <h4>${n.title}</h4>
