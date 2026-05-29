@@ -488,12 +488,20 @@
     };
   }
 
+  // base64 → UTF-8 한글 올바르게 디코딩
+  function b64toUtf8(str) {
+    return decodeURIComponent(
+      atob(str.replace(/\n/g, ''))
+        .split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2,'0')).join('')
+    );
+  }
+
   async function loadNotices() {
     try {
       const res  = await fetch(GH_API, { headers: ghHeaders() });
       const data = await res.json();
       fileSha  = data.sha;
-      notices  = JSON.parse(atob(data.content.replace(/\n/g,'')));
+      notices  = JSON.parse(b64toUtf8(data.content));
       renderList();
     } catch(e) {
       showToast('불러오기 실패: ' + e.message, true);
