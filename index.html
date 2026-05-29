@@ -245,43 +245,26 @@
     </div>
   </section>
 
-  <!-- Firebase 공지 로드 스크립트 -->
-  <script type="module">
-    import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, orderBy, query }
-                                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { firebaseConfig }   from "./firebase-config.js";
-
+  <!-- 공지사항 동적 로드 -->
+  <script>
     const badgeLabel = { new:'NEW', notice:'공지', guide:'안내' };
-    const badgeNew   = { new:true };
-
-    try {
-      if (firebaseConfig.apiKey === 'YOUR_API_KEY') throw new Error('not configured');
-      const app  = initializeApp(firebaseConfig);
-      const db   = getFirestore(app);
-      const q    = query(collection(db, 'notices'), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      if (snap.empty) return;
-      const list = document.getElementById('noticeList');
-      list.innerHTML = '';
-      snap.forEach(d => {
-        const n = d.data();
-        const label = badgeLabel[n.badge] || n.badge;
-        const isNew = n.badge === 'new';
-        list.innerHTML += `
+    fetch('./notices.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        if (!data || !data.length) return;
+        const list = document.getElementById('noticeList');
+        list.innerHTML = data.map(n => `
           <a href="#" class="notice-row">
-            <span class="nbadge${isNew?' new':''}">${label}</span>
+            <span class="nbadge${n.badge==='new'?' new':''}">${badgeLabel[n.badge]||n.badge}</span>
             <div class="notice-body">
               <h4>${n.title}</h4>
               ${n.sub ? `<p>${n.sub}</p>` : ''}
             </div>
             <span class="notice-date">${n.date||''}</span>
             <span class="notice-arr">›</span>
-          </a>`;
-      });
-    } catch(e) {
-      // Firebase 미설정 시 기존 샘플 유지
-    }
+          </a>`).join('');
+      })
+      .catch(() => {});
   </script>
 
   <!-- ── 사업 진행 현황 ──────────────────────────────── -->

@@ -7,134 +7,133 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #f1f5f9; color: #1e293b; }
-    a { text-decoration: none; color: inherit; }
 
-    /* 로그인 */
+    /* ── 로그인 ── */
     .login-wrap {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #0d2461, #1e40af);
+      background: linear-gradient(135deg, #0d2461 0%, #1e40af 100%);
     }
     .login-box {
-      background: #fff; border-radius: 16px; padding: 48px 40px;
-      width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,.2);
-      text-align: center;
+      background: #fff; border-radius: 20px; padding: 52px 44px;
+      width: 100%; max-width: 420px; box-shadow: 0 24px 64px rgba(0,0,0,.22); text-align: center;
     }
-    .login-box h1 { font-size: 20px; font-weight: 800; color: #0d2461; margin-bottom: 6px; }
-    .login-box p  { font-size: 13px; color: #94a3b8; margin-bottom: 28px; }
-    .login-box input {
+    .login-logo { font-size: 40px; margin-bottom: 14px; }
+    .login-box h1 { font-size: 19px; font-weight: 900; color: #0d2461; margin-bottom: 4px; }
+    .login-box p  { font-size: 12px; color: #94a3b8; margin-bottom: 32px; }
+    .input-group { margin-bottom: 14px; text-align: left; }
+    .input-group label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 5px; }
+    .input-group input {
       width: 100%; padding: 13px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-      font-size: 15px; outline: none; margin-bottom: 14px; transition: border .2s;
+      font-size: 14px; outline: none; transition: border .2s; background: #f8fafc;
     }
-    .login-box input:focus { border-color: #2563eb; }
-    .login-box button {
-      width: 100%; padding: 14px; background: #0d2461; color: #fff;
-      border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
-      cursor: pointer; transition: background .2s;
+    .input-group input:focus { border-color: #2563eb; background: #fff; }
+    .input-hint { font-size: 11px; color: #94a3b8; margin-top: 5px; line-height: 1.5; }
+    .btn-login {
+      width: 100%; padding: 14px; background: #0d2461; color: #fff; border: none;
+      border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px;
+      transition: background .2s;
     }
-    .login-box button:hover { background: #2563eb; }
-    .login-err { color: #ef4444; font-size: 13px; margin-top: 10px; }
+    .btn-login:hover { background: #2563eb; }
+    .login-err { color: #ef4444; font-size: 12px; margin-top: 10px; }
 
-    /* 관리자 패널 */
+    /* ── 관리자 패널 ── */
     .admin-wrap { display: none; min-height: 100vh; }
     .admin-header {
-      background: #0d2461; color: #fff; padding: 0 28px;
-      display: flex; align-items: center; justify-content: space-between; height: 60px;
+      background: #0d2461; padding: 0 28px;
+      display: flex; align-items: center; justify-content: space-between; height: 62px;
+      position: sticky; top: 0; z-index: 10;
     }
-    .admin-header h1 { font-size: 16px; font-weight: 700; }
-    .admin-header .head-right { display: flex; align-items: center; gap: 16px; }
-    .admin-header a { color: #93c5fd; font-size: 13px; }
+    .admin-header-left { display: flex; align-items: center; gap: 14px; }
+    .admin-header h1 { font-size: 15px; font-weight: 700; color: #fff; }
+    .admin-header .user-chip {
+      background: rgba(255,255,255,.1); color: #93c5fd;
+      font-size: 12px; padding: 4px 10px; border-radius: 20px;
+    }
+    .head-right { display: flex; align-items: center; gap: 12px; }
+    .head-right a { color: #93c5fd; font-size: 13px; transition: color .15s; }
+    .head-right a:hover { color: #fff; }
     .btn-logout {
-      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-      color: #fff; padding: 7px 14px; border-radius: 7px; font-size: 13px; cursor: pointer;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18);
+      color: #fff; padding: 7px 14px; border-radius: 7px; font-size: 12px;
+      cursor: pointer; transition: background .15s;
     }
-    .admin-body { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+    .btn-logout:hover { background: rgba(255,255,255,.16); }
 
-    /* 폼 카드 */
-    .form-card {
-      background: #fff; border-radius: 14px; padding: 28px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06); margin-bottom: 28px;
+    .admin-body { max-width: 860px; margin: 0 auto; padding: 32px 20px; }
+
+    /* ── 폼 카드 ── */
+    .card {
+      background: #fff; border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.06); margin-bottom: 24px;
+      border: 1px solid #f1f5f9;
     }
-    .form-card h2 { font-size: 16px; font-weight: 800; color: #0d2461; margin-bottom: 20px; }
+    .card-title {
+      font-size: 15px; font-weight: 800; color: #0d2461;
+      margin-bottom: 22px; display: flex; align-items: center; gap: 8px;
+    }
     .form-row { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
-    .form-row label { font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 5px; }
-    .form-row .field { flex: 1; min-width: 160px; }
-    select, input[type="text"], textarea {
+    .field { flex: 1; min-width: 140px; }
+    .field label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 5px; }
+    select, .finput {
       width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 9px;
       font-size: 14px; font-family: inherit; outline: none; transition: border .2s; background: #f8fafc;
     }
-    select:focus, input[type="text"]:focus, textarea:focus { border-color: #2563eb; background: #fff; }
-    textarea { resize: vertical; min-height: 70px; }
-    .btn-add {
+    select:focus, .finput:focus { border-color: #2563eb; background: #fff; }
+    .btn-submit {
       background: #0d2461; color: #fff; border: none; border-radius: 9px;
       padding: 12px 28px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s;
     }
-    .btn-add:hover { background: #2563eb; }
-    .btn-add:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-submit:hover { background: #2563eb; }
+    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
 
-    /* 공지 목록 */
-    .list-card {
-      background: #fff; border-radius: 14px; padding: 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    }
+    /* ── 목록 ── */
     .list-head {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
     }
-    .list-head h2 { font-size: 16px; font-weight: 800; color: #0d2461; }
-    .list-count { font-size: 12px; color: #94a3b8; }
-
+    .list-count { font-size: 13px; color: #94a3b8; }
     .notice-item {
-      display: flex; align-items: flex-start; gap: 14px; padding: 16px 0;
-      border-bottom: 1px solid #f1f5f9;
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 16px 0; border-bottom: 1px solid #f1f5f9;
+      transition: background .15s;
     }
     .notice-item:last-child { border-bottom: none; }
     .nbadge {
-      flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 3px 9px;
-      border-radius: 6px; margin-top: 2px;
+      flex-shrink: 0; font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 6px; margin-top: 2px;
     }
-    .nbadge-new    { background: #fef3c7; color: #d97706; }
-    .nbadge-notice { background: #eff6ff; color: #2563eb; }
-    .nbadge-guide  { background: #f0fdf4; color: #16a34a; }
-    .notice-body { flex: 1; }
-    .notice-body strong { font-size: 15px; color: #1e293b; display: block; margin-bottom: 3px; }
-    .notice-body span   { font-size: 13px; color: #94a3b8; }
+    .b-new    { background: #fef3c7; color: #d97706; }
+    .b-notice { background: #eff6ff; color: #2563eb; }
+    .b-guide  { background: #f0fdf4; color: #16a34a; }
+    .notice-body { flex: 1; min-width: 0; }
+    .notice-body strong { font-size: 14px; color: #1e293b; display: block; margin-bottom: 3px; }
+    .notice-body small  { font-size: 12px; color: #94a3b8; }
     .notice-body p      { font-size: 13px; color: #475569; margin-top: 4px; }
-    .notice-actions { display: flex; gap: 8px; flex-shrink: 0; }
-    .btn-edit {
+    .item-actions { display: flex; gap: 7px; flex-shrink: 0; }
+    .btn-e {
       background: #f1f5f9; color: #475569; border: none; border-radius: 7px;
       padding: 6px 12px; font-size: 12px; cursor: pointer; transition: background .15s;
     }
-    .btn-edit:hover { background: #e2e8f0; }
-    .btn-del {
+    .btn-e:hover { background: #e2e8f0; }
+    .btn-d {
       background: #fef2f2; color: #ef4444; border: none; border-radius: 7px;
       padding: 6px 12px; font-size: 12px; cursor: pointer; transition: background .15s;
     }
-    .btn-del:hover { background: #fee2e2; }
-
+    .btn-d:hover { background: #fee2e2; }
     .empty { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
-    .loading { text-align: center; padding: 30px; color: #94a3b8; }
 
-    /* 토스트 */
-    .toast {
-      position: fixed; bottom: 28px; right: 28px; z-index: 999;
-      background: #0d2461; color: #fff; padding: 14px 22px; border-radius: 10px;
-      font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.2);
-      transform: translateY(80px); opacity: 0; transition: all .3s;
-    }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.err  { background: #ef4444; }
-
-    /* 수정 모달 */
+    /* ── 수정 모달 ── */
     .modal-bg {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5);
-      z-index: 100; align-items: center; justify-content: center;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
     }
     .modal-bg.open { display: flex; }
     .modal {
-      background: #fff; border-radius: 16px; padding: 32px; width: 100%; max-width: 520px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      background: #fff; border-radius: 18px; padding: 32px;
+      width: 100%; max-width: 500px; box-shadow: 0 24px 64px rgba(0,0,0,.18);
     }
-    .modal h3 { font-size: 17px; font-weight: 800; color: #0d2461; margin-bottom: 20px; }
-    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .modal h3 { font-size: 16px; font-weight: 800; color: #0d2461; margin-bottom: 22px; }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
     .btn-cancel {
       background: #f1f5f9; color: #475569; border: none; border-radius: 9px;
       padding: 11px 22px; font-size: 14px; cursor: pointer;
@@ -145,27 +144,45 @@
     }
     .btn-save:hover { background: #2563eb; }
 
-    /* config 알림 */
-    .config-alert {
-      background: #fef3c7; border: 1px solid #fcd34d; border-radius: 12px;
-      padding: 16px 20px; margin-bottom: 24px; font-size: 14px; color: #92400e;
-      display: none;
+    /* ── 토스트 ── */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 999;
+      background: #0d2461; color: #fff; padding: 13px 22px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      transform: translateY(80px); opacity: 0; transition: all .3s;
+      display: flex; align-items: center; gap: 8px;
     }
-    .config-alert.show { display: block; }
-    .config-alert strong { display: block; margin-bottom: 4px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.err  { background: #ef4444; }
+
+    .saving-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(255,255,255,.7);
+      z-index: 200; align-items: center; justify-content: center; font-size: 16px;
+      font-weight: 700; color: #0d2461; gap: 10px;
+    }
+    .saving-overlay.show { display: flex; }
   </style>
 </head>
 <body>
 
-<!-- 로그인 화면 -->
+<!-- 로그인 -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-box">
-    <h1>⚙️ 관리자 로그인</h1>
-    <p>가리봉2구역재개발정비사업조합</p>
-    <input type="email" id="loginEmail" placeholder="이메일" autocomplete="username"/>
-    <input type="password" id="loginPw" placeholder="비밀번호" autocomplete="current-password"
-           onkeydown="if(event.key==='Enter') doLogin()"/>
-    <button onclick="doLogin()">로그인</button>
+    <div class="login-logo">🏢</div>
+    <h1>가리봉2구역 재개발조합</h1>
+    <p>공지사항 관리자 페이지</p>
+    <div class="input-group">
+      <label>관리자 비밀번호</label>
+      <input type="password" id="loginPw" placeholder="비밀번호 입력"
+             onkeydown="if(event.key==='Enter') doLogin()"/>
+    </div>
+    <div class="input-group">
+      <label>GitHub 토큰</label>
+      <input type="password" id="loginToken" placeholder="ghp_... 또는 gho_..."
+             onkeydown="if(event.key==='Enter') doLogin()"/>
+      <p class="input-hint">GitHub Settings → Developer settings → Personal access tokens 에서 발급<br>(repo 권한 필요 / 브라우저 닫으면 자동 삭제)</p>
+    </div>
+    <button class="btn-login" onclick="doLogin()">로그인</button>
     <p class="login-err" id="loginErr"></p>
   </div>
 </div>
@@ -173,52 +190,49 @@
 <!-- 관리자 패널 -->
 <div class="admin-wrap" id="adminWrap">
   <div class="admin-header">
-    <h1>📋 공지사항 관리</h1>
+    <div class="admin-header-left">
+      <h1>📋 공지사항 관리</h1>
+    </div>
     <div class="head-right">
-      <a href="index.html" target="_blank">← 홈페이지 보기</a>
+      <a href="index.html" target="_blank">← 홈페이지</a>
       <button class="btn-logout" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
 
   <div class="admin-body">
-    <div class="config-alert" id="configAlert">
-      <strong>⚠️ Firebase 설정이 필요합니다</strong>
-      admin.html 하단의 firebaseConfig 값을 Firebase 콘솔에서 발급받아 입력해 주세요.
-    </div>
-
-    <!-- 공지 추가 폼 -->
-    <div class="form-card">
-      <h2>+ 새 공지 등록</h2>
+    <!-- 새 공지 등록 -->
+    <div class="card">
+      <div class="card-title">✏️ 새 공지 등록</div>
       <div class="form-row">
-        <div class="field">
+        <div class="field" style="max-width:120px">
           <label>분류</label>
-          <select id="newBadge">
-            <option value="new">NEW</option>
-            <option value="notice">공지</option>
-            <option value="guide">안내</option>
+          <select id="nBadge">
+            <option value="new">🆕 NEW</option>
+            <option value="notice">📢 공지</option>
+            <option value="guide">ℹ️ 안내</option>
           </select>
         </div>
-        <div class="field" style="flex:3">
-          <label>제목</label>
-          <input type="text" id="newTitle" placeholder="공지 제목을 입력하세요"/>
+        <div class="field">
+          <label>제목 *</label>
+          <input class="finput" id="nTitle" placeholder="공지 제목"/>
         </div>
       </div>
       <div class="form-row">
-        <div class="field" style="flex:1">
-          <label>부제목 (선택)</label>
-          <input type="text" id="newSub" placeholder="예) 일시: 2026년 ○월 ○일"/>
+        <div class="field">
+          <label>부제목 / 상세내용 (선택)</label>
+          <input class="finput" id="nSub" placeholder="예) 일시: 2026년 ○월 ○일 / 장소: ○○"/>
         </div>
       </div>
-      <button class="btn-add" id="btnAdd" onclick="addNotice()">등록하기</button>
+      <button class="btn-submit" id="btnAdd" onclick="addNotice()">등록하기</button>
     </div>
 
-    <!-- 공지 목록 -->
-    <div class="list-card">
+    <!-- 목록 -->
+    <div class="card">
       <div class="list-head">
-        <h2>공지 목록</h2>
-        <span class="list-count" id="listCount">불러오는 중...</span>
+        <div class="card-title" style="margin:0">📋 공지 목록</div>
+        <span class="list-count" id="listCount">-</span>
       </div>
-      <div id="noticeList"><div class="loading">⏳ 불러오는 중...</div></div>
+      <div id="noticeList"><div class="empty">⏳ 불러오는 중...</div></div>
     </div>
   </div>
 </div>
@@ -227,187 +241,196 @@
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h3>✏️ 공지 수정</h3>
-    <input type="hidden" id="editId"/>
+    <input type="hidden" id="eIdx"/>
     <div class="form-row">
-      <div class="field">
+      <div class="field" style="max-width:120px">
         <label>분류</label>
-        <select id="editBadge">
-          <option value="new">NEW</option>
-          <option value="notice">공지</option>
-          <option value="guide">안내</option>
+        <select id="eBadge">
+          <option value="new">🆕 NEW</option>
+          <option value="notice">📢 공지</option>
+          <option value="guide">ℹ️ 안내</option>
         </select>
       </div>
-      <div class="field" style="flex:3">
+      <div class="field">
         <label>제목</label>
-        <input type="text" id="editTitle"/>
+        <input class="finput" id="eTitle"/>
       </div>
     </div>
     <div class="form-row">
       <div class="field">
         <label>부제목</label>
-        <input type="text" id="editSub"/>
+        <input class="finput" id="eSub"/>
       </div>
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
-      <button class="btn-save" onclick="saveEdit()">저장</button>
+      <button class="btn-save"   onclick="saveEdit()">저장</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="saving-overlay" id="savingOverlay">⏳ 저장 중...</div>
 
-<!-- ════════════════════════════════════════════════
-  Firebase SDK
-════════════════════════════════════════════════ -->
-<script type="module">
-  import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-                                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, orderBy, query, serverTimestamp }
-                                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
+  // ── 설정 ───────────────────────────────────────────
+  const REPO    = 'duelspost-droid/garibong2-site';
+  const FILE    = 'notices.json';
+  const GH_API  = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+  const ADMIN_PW = 'garibong2024!';
+  // ───────────────────────────────────────────────────
 
-  // ── Firebase 설정 ── (Firebase 콘솔에서 발급받아 여기에 입력)
-  const firebaseConfig = {
-    apiKey:            "YOUR_API_KEY",
-    authDomain:        "YOUR_AUTH_DOMAIN",
-    projectId:         "YOUR_PROJECT_ID",
-    storageBucket:     "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId:             "YOUR_APP_ID"
-  };
-  // ──────────────────────────────────────────────
-
-  const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
-
-  let app, auth, db;
-  if (isConfigured) {
-    app  = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db   = getFirestore(app);
-  } else {
-    document.getElementById('configAlert').classList.add('show');
-  }
-
-  // 날짜 포맷
-  const today = () => new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').replace('.','.');
-
-  // 배지 라벨
   const badgeLabel = { new:'NEW', notice:'공지', guide:'안내' };
-  const badgeClass = { new:'nbadge-new', notice:'nbadge-notice', guide:'nbadge-guide' };
+  const badgeClass = { new:'b-new', notice:'b-notice', guide:'b-guide' };
 
-  // 토스트
-  window.showToast = (msg, err=false) => {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.className = 'toast show' + (err?' err':'');
-    setTimeout(() => t.className = 'toast', 2800);
-  };
+  let notices = [];
+  let fileSha = '';
 
-  // ── 인증 ──────────────────────────────────────
-  window.doLogin = async () => {
-    if (!isConfigured) { showToast('Firebase 설정을 먼저 완료해주세요', true); return; }
-    const email = document.getElementById('loginEmail').value.trim();
+  // ── 인증 ──────────────────────────────────────────
+  function isLoggedIn() { return sessionStorage.getItem('admin_auth') === '1'; }
+
+  window.doLogin = () => {
     const pw    = document.getElementById('loginPw').value;
-    try {
-      await signInWithEmailAndPassword(auth, email, pw);
-    } catch(e) {
-      document.getElementById('loginErr').textContent = '이메일 또는 비밀번호가 틀렸습니다.';
+    const token = document.getElementById('loginToken').value.trim();
+    if (pw !== ADMIN_PW) {
+      document.getElementById('loginErr').textContent = '비밀번호가 틀렸습니다.'; return;
     }
+    if (!token) {
+      document.getElementById('loginErr').textContent = 'GitHub 토큰을 입력해주세요.'; return;
+    }
+    sessionStorage.setItem('admin_auth','1');
+    sessionStorage.setItem('gh_token', token);
+    showAdmin();
   };
-  window.doLogout = async () => { await signOut(auth); };
+  window.doLogout = () => {
+    sessionStorage.removeItem('admin_auth');
+    location.reload();
+  };
 
-  if (isConfigured) {
-    onAuthStateChanged(auth, user => {
-      document.getElementById('loginWrap').style.display  = user ? 'none' : 'flex';
-      document.getElementById('adminWrap').style.display  = user ? 'block' : 'none';
-      if (user) loadNotices();
-    });
+  function showAdmin() {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('adminWrap').style.display = 'block';
+    loadNotices();
   }
 
-  // ── 공지 목록 로드 ─────────────────────────────
+  if (isLoggedIn()) showAdmin();
+
+  // ── GitHub API ────────────────────────────────────
+  const ghHeaders = {
+    'Authorization': `Bearer ${sessionStorage.getItem('gh_token')}`,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json'
+  };
+
   async function loadNotices() {
-    if (!db) return;
-    const q = query(collection(db, 'notices'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    const list = document.getElementById('noticeList');
-    const count = document.getElementById('listCount');
-    if (snap.empty) {
-      list.innerHTML = '<div class="empty">등록된 공지가 없습니다.</div>';
-      count.textContent = '0건'; return;
+    try {
+      const res  = await fetch(GH_API, { headers: ghHeaders });
+      const data = await res.json();
+      fileSha  = data.sha;
+      notices  = JSON.parse(atob(data.content.replace(/\n/g,'')));
+      renderList();
+    } catch(e) {
+      showToast('불러오기 실패: ' + e.message, true);
     }
-    count.textContent = snap.size + '건';
-    list.innerHTML = '';
-    snap.forEach(d => {
-      const n = d.data();
-      list.innerHTML += `
-        <div class="notice-item" id="item-${d.id}">
-          <span class="nbadge ${badgeClass[n.badge]||'nbadge-notice'}">${badgeLabel[n.badge]||n.badge}</span>
-          <div class="notice-body">
-            <strong>${n.title}</strong>
-            <span>${n.date}</span>
-            ${n.sub ? `<p>${n.sub}</p>` : ''}
-          </div>
-          <div class="notice-actions">
-            <button class="btn-edit" onclick="openEdit('${d.id}','${n.badge}',\`${n.title}\`,\`${n.sub||''}\`)">수정</button>
-            <button class="btn-del"  onclick="delNotice('${d.id}')">삭제</button>
-          </div>
-        </div>`;
-    });
   }
 
-  // ── 공지 추가 ─────────────────────────────────
+  async function saveNotices(msg) {
+    document.getElementById('savingOverlay').classList.add('show');
+    try {
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(notices, null, 2))));
+      const res = await fetch(GH_API, {
+        method: 'PUT',
+        headers: ghHeaders,
+        body: JSON.stringify({ message: msg, content, sha: fileSha })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      fileSha = data.content.sha;
+    } catch(e) {
+      showToast('저장 실패: ' + e.message, true);
+    } finally {
+      document.getElementById('savingOverlay').classList.remove('show');
+    }
+  }
+
+  // ── 렌더링 ────────────────────────────────────────
+  function renderList() {
+    const list = document.getElementById('noticeList');
+    document.getElementById('listCount').textContent = notices.length + '건';
+    if (!notices.length) { list.innerHTML = '<div class="empty">등록된 공지가 없습니다.</div>'; return; }
+    list.innerHTML = notices.map((n, i) => `
+      <div class="notice-item">
+        <span class="nbadge ${badgeClass[n.badge]||'b-notice'}">${badgeLabel[n.badge]||n.badge}</span>
+        <div class="notice-body">
+          <strong>${n.title}</strong>
+          <small>${n.date||''}</small>
+          ${n.sub ? `<p>${n.sub}</p>` : ''}
+        </div>
+        <div class="item-actions">
+          <button class="btn-e" onclick="openEdit(${i})">수정</button>
+          <button class="btn-d" onclick="delNotice(${i})">삭제</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── CRUD ──────────────────────────────────────────
   window.addNotice = async () => {
-    if (!db) { showToast('Firebase 설정 필요', true); return; }
-    const title = document.getElementById('newTitle').value.trim();
+    const title = document.getElementById('nTitle').value.trim();
     if (!title) { showToast('제목을 입력해주세요', true); return; }
     const btn = document.getElementById('btnAdd');
     btn.disabled = true; btn.textContent = '등록 중...';
-    try {
-      await addDoc(collection(db, 'notices'), {
-        badge: document.getElementById('newBadge').value,
-        title,
-        sub:   document.getElementById('newSub').value.trim(),
-        date:  today(),
-        createdAt: serverTimestamp()
-      });
-      document.getElementById('newTitle').value = '';
-      document.getElementById('newSub').value   = '';
-      showToast('✅ 공지가 등록되었습니다');
-      loadNotices();
-    } catch(e) { showToast('오류: ' + e.message, true); }
+    const today = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'})
+      .replace(/\. /g,'.').slice(0,-1);
+    notices.unshift({
+      id: Date.now(),
+      badge: document.getElementById('nBadge').value,
+      title,
+      sub: document.getElementById('nSub').value.trim(),
+      date: today
+    });
+    await saveNotices('공지 추가: ' + title);
+    document.getElementById('nTitle').value = '';
+    document.getElementById('nSub').value   = '';
+    renderList();
+    showToast('✅ 공지가 등록되었습니다');
     btn.disabled = false; btn.textContent = '등록하기';
   };
 
-  // ── 공지 삭제 ─────────────────────────────────
-  window.delNotice = async (id) => {
-    if (!confirm('이 공지를 삭제할까요?')) return;
-    await deleteDoc(doc(db, 'notices', id));
+  window.delNotice = async (i) => {
+    if (!confirm(`"${notices[i].title}" 을 삭제할까요?`)) return;
+    const title = notices[i].title;
+    notices.splice(i, 1);
+    await saveNotices('공지 삭제: ' + title);
+    renderList();
     showToast('🗑️ 삭제되었습니다');
-    loadNotices();
   };
 
-  // ── 공지 수정 ─────────────────────────────────
-  window.openEdit = (id, badge, title, sub) => {
-    document.getElementById('editId').value    = id;
-    document.getElementById('editBadge').value = badge;
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editSub').value   = sub;
+  window.openEdit = (i) => {
+    document.getElementById('eIdx').value   = i;
+    document.getElementById('eBadge').value = notices[i].badge;
+    document.getElementById('eTitle').value = notices[i].title;
+    document.getElementById('eSub').value   = notices[i].sub || '';
     document.getElementById('editModal').classList.add('open');
   };
   window.closeModal = () => document.getElementById('editModal').classList.remove('open');
   window.saveEdit   = async () => {
-    const id    = document.getElementById('editId').value;
-    const title = document.getElementById('editTitle').value.trim();
+    const i = parseInt(document.getElementById('eIdx').value);
+    const title = document.getElementById('eTitle').value.trim();
     if (!title) { showToast('제목을 입력해주세요', true); return; }
-    await updateDoc(doc(db, 'notices', id), {
-      badge: document.getElementById('editBadge').value,
-      title,
-      sub:   document.getElementById('editSub').value.trim()
-    });
-    closeModal();
+    notices[i].badge = document.getElementById('eBadge').value;
+    notices[i].title = title;
+    notices[i].sub   = document.getElementById('eSub').value.trim();
+    await saveNotices('공지 수정: ' + title);
+    closeModal(); renderList();
     showToast('✅ 수정되었습니다');
-    loadNotices();
   };
+
+  // ── 토스트 ────────────────────────────────────────
+  function showToast(msg, err=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show' + (err?' err':'');
+    setTimeout(() => t.className = 'toast', 3000);
+  }
 </script>
 </body>
 </html>
