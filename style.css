@@ -243,7 +243,7 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 .chairman-img {
   width: 100%; height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: 65% 15%;
 }
 .greeting-name { text-align: center; }
 .greeting-name strong { display: block; font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
