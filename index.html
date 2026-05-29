@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- 헤더 / 네비게이션 -->
+  <!-- 헤더 -->
   <header>
     <div class="container header-inner">
       <div class="logo">
@@ -24,29 +24,49 @@
       <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     </div>
     <div class="mobile-nav" id="mobileNav">
-      <a href="#about" onclick="toggleMenu()">조합 소개</a>
-      <a href="#notice" onclick="toggleMenu()">공지사항</a>
+      <a href="#about"    onclick="toggleMenu()">조합 소개</a>
+      <a href="#notice"   onclick="toggleMenu()">공지사항</a>
       <a href="#progress" onclick="toggleMenu()">사업 현황</a>
-      <a href="#contact" onclick="toggleMenu()">문의</a>
+      <a href="#contact"  onclick="toggleMenu()">문의</a>
     </div>
   </header>
 
-  <!-- 히어로 섹션 -->
+  <!-- 히어로 -->
   <section class="hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <p class="hero-sub">서울특별시 구로구</p>
-      <h1>가리봉제2구역<br>주택재개발정비사업</h1>
-      <p class="hero-desc">더 나은 주거환경을 위한 새로운 시작</p>
-      <a href="#about" class="btn-primary">조합 소개 보기</a>
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-eyebrow">서울특별시 구로구 · 주택재개발정비사업</div>
+        <h1>가리봉<span>제2구역</span><br>재개발조합</h1>
+        <p class="hero-desc">더 나은 주거환경을 위한 새로운 시작.<br>투명하고 신뢰받는 조합이 되겠습니다.</p>
+        <div class="hero-actions">
+          <a href="#about"    class="btn-primary">조합 소개 보기 →</a>
+          <a href="#progress" class="btn-secondary">사업 진행 현황</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-box">
+        <div class="stat-num">○○○<span>명</span></div>
+        <div class="stat-label">조합원 수</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">3<span>단계</span></div>
+        <div class="stat-label">현재 진행 단계</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">202○<span>년</span></div>
+        <div class="stat-label">준공 목표</div>
+      </div>
     </div>
   </section>
 
   <!-- 조합 소개 -->
-  <section id="about" class="section section-light">
+  <section id="about" class="section section-gray">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">ABOUT</span>
+        <div class="section-label">ABOUT</div>
         <h2>조합 소개</h2>
         <p>가리봉제2구역 주택재개발정비사업 조합에 오신 것을 환영합니다.</p>
       </div>
@@ -54,22 +74,22 @@
         <div class="card">
           <div class="card-icon">🏢</div>
           <h3>조합명</h3>
-          <p>가리봉제2구역 주택재개발정비사업조합</p>
+          <p>가리봉제2구역<br>주택재개발정비사업조합</p>
         </div>
         <div class="card">
           <div class="card-icon">📍</div>
           <h3>위치</h3>
-          <p>서울특별시 구로구 가리봉동 일대</p>
+          <p>서울특별시 구로구<br>가리봉동 일대</p>
         </div>
         <div class="card">
           <div class="card-icon">📅</div>
           <h3>조합 설립일</h3>
-          <p>2024년 ○월 ○일 (예시)</p>
+          <p>2024년 ○월 ○일<br>(예시)</p>
         </div>
         <div class="card">
           <div class="card-icon">👥</div>
           <h3>조합원 수</h3>
-          <p>약 ○○○명 (예시)</p>
+          <p>약 ○○○명<br>(예시)</p>
         </div>
       </div>
     </div>
@@ -79,7 +99,7 @@
   <section id="notice" class="section section-dark">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">NOTICE</span>
+        <div class="section-label">NOTICE</div>
         <h2>공지사항</h2>
         <p>조합의 최신 소식과 공지를 확인하세요.</p>
       </div>
@@ -88,9 +108,10 @@
           <span class="notice-badge new">NEW</span>
           <div class="notice-content">
             <h4>제○차 조합원 총회 개최 안내</h4>
-            <p>일시: 2025년 ○월 ○일 / 장소: ○○구민회관</p>
+            <p>일시: 2025년 ○월 ○일 &nbsp;/&nbsp; 장소: ○○구민회관</p>
           </div>
           <span class="notice-date">2025.00.00</span>
+          <span class="notice-arrow">›</span>
         </div>
         <div class="notice-item">
           <span class="notice-badge">공지</span>
@@ -99,14 +120,16 @@
             <p>관할 구청에 사업시행계획인가를 신청하였습니다.</p>
           </div>
           <span class="notice-date">2025.00.00</span>
+          <span class="notice-arrow">›</span>
         </div>
         <div class="notice-item">
           <span class="notice-badge">공지</span>
           <div class="notice-content">
-            <h4>조합 홈페이지 오픈 안내</h4>
+            <h4>조합 홈페이지 공식 오픈 안내</h4>
             <p>가리봉제2구역 조합 공식 홈페이지가 오픈되었습니다.</p>
           </div>
           <span class="notice-date">2025.00.00</span>
+          <span class="notice-arrow">›</span>
         </div>
         <div class="notice-item">
           <span class="notice-badge">안내</span>
@@ -115,6 +138,7 @@
             <p>이주비 대출 관련 안내문을 조합원 여러분께 배포합니다.</p>
           </div>
           <span class="notice-date">2025.00.00</span>
+          <span class="notice-arrow">›</span>
         </div>
       </div>
     </div>
@@ -124,55 +148,55 @@
   <section id="progress" class="section section-light">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">PROGRESS</span>
+        <div class="section-label">PROGRESS</div>
         <h2>사업 진행 현황</h2>
         <p>재개발 사업의 단계별 진행 현황입니다.</p>
       </div>
       <div class="timeline">
         <div class="timeline-item done">
-          <div class="timeline-dot"></div>
-          <div class="timeline-body">
-            <span class="timeline-status done-badge">완료</span>
+          <div class="tl-dot-wrap"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <span class="tl-status done-badge">완료</span>
             <h4>정비구역 지정</h4>
             <p>서울시 정비구역 고시</p>
           </div>
         </div>
         <div class="timeline-item done">
-          <div class="timeline-dot"></div>
-          <div class="timeline-body">
-            <span class="timeline-status done-badge">완료</span>
+          <div class="tl-dot-wrap"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <span class="tl-status done-badge">완료</span>
             <h4>조합 설립 인가</h4>
             <p>구청 조합설립인가 취득</p>
           </div>
         </div>
         <div class="timeline-item active">
-          <div class="timeline-dot"></div>
-          <div class="timeline-body">
-            <span class="timeline-status active-badge">진행중</span>
+          <div class="tl-dot-wrap"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <span class="tl-status active-badge">진행중</span>
             <h4>사업시행계획인가</h4>
             <p>사업시행계획 인가 신청 및 검토 중</p>
           </div>
         </div>
         <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-body">
-            <span class="timeline-status upcoming-badge">예정</span>
+          <div class="tl-dot-wrap"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <span class="tl-status upcoming-badge">예정</span>
             <h4>관리처분계획인가</h4>
             <p>분양 및 관리처분 계획 수립</p>
           </div>
         </div>
         <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-body">
-            <span class="timeline-status upcoming-badge">예정</span>
+          <div class="tl-dot-wrap"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <span class="tl-status upcoming-badge">예정</span>
             <h4>이주 및 철거</h4>
             <p>기존 건물 이주 및 철거 공사</p>
           </div>
         </div>
         <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-body">
-            <span class="timeline-status upcoming-badge">예정</span>
+          <div class="tl-dot-wrap"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <span class="tl-status upcoming-badge">예정</span>
             <h4>착공 및 준공</h4>
             <p>신축 아파트 건설 및 입주</p>
           </div>
@@ -182,28 +206,28 @@
   </section>
 
   <!-- 문의 / 연락처 -->
-  <section id="contact" class="section section-dark">
+  <section id="contact" class="section section-gray">
     <div class="container">
       <div class="section-header">
-        <span class="section-tag">CONTACT</span>
+        <div class="section-label">CONTACT</div>
         <h2>문의 / 연락처</h2>
         <p>조합 관련 문의사항은 아래로 연락 주시기 바랍니다.</p>
       </div>
       <div class="contact-grid">
         <div class="contact-card">
-          <div class="contact-icon">📞</div>
+          <div class="contact-icon-wrap">📞</div>
           <h4>전화</h4>
           <p>02-000-0000</p>
           <p class="contact-sub">평일 09:00 ~ 18:00</p>
         </div>
         <div class="contact-card">
-          <div class="contact-icon">✉️</div>
+          <div class="contact-icon-wrap">✉️</div>
           <h4>이메일</h4>
           <p>info@garibong2.kr</p>
           <p class="contact-sub">(예시 이메일)</p>
         </div>
         <div class="contact-card">
-          <div class="contact-icon">📮</div>
+          <div class="contact-icon-wrap">📮</div>
           <h4>사무소 주소</h4>
           <p>서울특별시 구로구 가리봉동 ○○○</p>
           <p class="contact-sub">(예시 주소)</p>
@@ -215,26 +239,34 @@
   <!-- 푸터 -->
   <footer>
     <div class="container">
-      <p><strong>가리봉제2구역 주택재개발정비사업조합</strong></p>
-      <p>서울특별시 구로구 가리봉동 일대 | 대표전화: 02-000-0000</p>
-      <p class="footer-copy">© 2025 가리봉제2구역 재개발조합. All rights reserved.</p>
+      <div class="footer-inner">
+        <div>
+          <div class="footer-logo">가리봉제2구역 재개발조합</div>
+          <div class="footer-info">
+            서울특별시 구로구 가리봉동 일대<br>
+            대표전화: 02-000-0000 &nbsp;|&nbsp; 이메일: info@garibong2.kr
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="#about">조합 소개</a>
+          <a href="#notice">공지사항</a>
+          <a href="#progress">사업 현황</a>
+          <a href="#contact">문의</a>
+        </div>
+      </div>
+      <p class="footer-copy">© 2025 가리봉제2구역 주택재개발정비사업조합. All rights reserved.</p>
     </div>
   </footer>
 
   <script>
     function toggleMenu() {
-      const nav = document.getElementById('mobileNav');
-      nav.classList.toggle('open');
+      document.getElementById('mobileNav').classList.toggle('open');
     }
-
-    // 네비게이션 스크롤 활성화
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('header nav a');
     window.addEventListener('scroll', () => {
       let current = '';
-      sections.forEach(s => {
-        if (window.scrollY >= s.offsetTop - 80) current = s.id;
-      });
+      sections.forEach(s => { if (window.scrollY >= s.offsetTop - 90) current = s.id; });
       navLinks.forEach(a => {
         a.classList.remove('active');
         if (a.getAttribute('href') === '#' + current) a.classList.add('active');
