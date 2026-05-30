@@ -1509,6 +1509,14 @@
     }
     return out.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])).trim();
   }
+  // 긴 IPv6 주소 축약 (전체는 title 툴팁으로 표시)
+  function shortIp(ip) {
+    if (ip && ip.indexOf(':') !== -1 && ip.length > 22) {
+      const g = ip.split(':');
+      if (g.length > 4) return g.slice(0, 3).join(':') + ':…:' + g[g.length - 1];
+    }
+    return ip;
+  }
   let auditData = [];      // 전체 기록
   let auditShown = 100;    // 화면에 표시할 개수 (더보기로 증가)
   async function renderAudit() {
@@ -1580,14 +1588,20 @@
           <th style="padding:8px 10px;">계정</th>
           <th style="padding:8px 10px;">결과</th>
           <th style="padding:8px 10px;">기기</th>
-          <th style="padding:8px 10px;">IP (위치)</th>
+          <th style="padding:8px 10px;">접속 위치 / IP</th>
         </tr></thead>
         <tbody>
         ${shown.map((e, i) => {
           const d = new Date(e.ts);
           const t = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-          const loc = [auditClean(e.city), auditClean(e.country)].filter(Boolean).join(' · ');
-          const ipCell = (auditClean(e.ip)||'-') + (loc ? ` <span style="color:#94a3b8;">(${loc})</span>` : '');
+          const city = auditClean(e.city), country = auditClean(e.country);
+          const loc = [city, country].filter(Boolean).join(' · ');
+          const foreign = country && country !== 'KR';
+          const ipFull = auditClean(e.ip) || '-';
+          const locPill = loc
+            ? `<span style="display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; ${foreign?'background:#fef2f2; color:#dc2626;':'background:#eef2f7; color:#475569;'}">${foreign?'⚠ 해외 · ':'📍 '}${loc}</span>`
+            : '<span style="font-size:11px; color:#cbd5e1;">위치 미확인</span>';
+          const ipLine = `<span title="${ipFull}" style="font-size:11px; color:#94a3b8; font-family:monospace;">${shortIp(ipFull)}</span>`;
           const device = auditClean(e.device) || '-';
           const rowBg = e.ok ? '' : 'background:#fef2f2;';
           return `<tr style="border-bottom:1px solid #f1f5f9; ${rowBg}">
@@ -1596,7 +1610,7 @@
             <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${auditClean(roleName[e.role]||e.role)}</td>
             <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
             <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${device}</td>
-            <td style="padding:8px 10px; color:#475569; font-family:monospace;">${ipCell}</td>
+            <td style="padding:8px 10px;"><div>${locPill}</div><div style="margin-top:3px;">${ipLine}</div></td>
           </tr>`;
         }).join('')}
         </tbody>
