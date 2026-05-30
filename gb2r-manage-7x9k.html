@@ -377,6 +377,15 @@
         </div>
       </div>
       <div class="form-row">
+        <div class="field"><label>위치 — 제목</label><input class="finput" id="ct-visual-map-title"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>위치 — 설명</label><textarea class="finput ftextarea" id="ct-visual-map-desc" style="min-height:70px"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>위치 — 목록 (한 줄에 하나씩)</label><textarea class="finput ftextarea" id="ct-visual-map-list" style="min-height:90px"></textarea></div>
+      </div>
+      <div class="form-row">
         <div class="field">
           <label>완공 후 조감도</label>
           <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
@@ -390,6 +399,15 @@
           </div>
           <input type="hidden" id="ct-visual-render"/>
         </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>조감도 — 제목</label><input class="finput" id="ct-visual-render-title"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>조감도 — 설명</label><textarea class="finput ftextarea" id="ct-visual-render-desc" style="min-height:70px"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>조감도 — 목록 (한 줄에 하나씩)</label><textarea class="finput ftextarea" id="ct-visual-render-list" style="min-height:90px"></textarea></div>
       </div>
     </div>
 
@@ -821,6 +839,13 @@
       if (mp) mp.src = mapVal + (mapVal.includes('?') ? '' : '?t=' + Date.now());
       const rp = document.getElementById('ct-visual-render-preview');
       if (rp) rp.src = renVal + (renVal.includes('?') ? '' : '?t=' + Date.now());
+      // 위치·조감도 텍스트
+      v('ct-visual-map-title',    c.visual?.map_title);
+      v('ct-visual-map-desc',     c.visual?.map_desc);
+      v('ct-visual-map-list',     c.visual?.map_list);
+      v('ct-visual-render-title', c.visual?.render_title);
+      v('ct-visual-render-desc',  c.visual?.render_desc);
+      v('ct-visual-render-list',  c.visual?.render_list);
       // 문의
       v('ct-contact-phone',       c.contact?.phone);
       v('ct-contact-hours',       c.contact?.hours);
@@ -851,7 +876,13 @@
       },
       visual: {
         map: g('ct-visual-map') || 'map.png',
-        render: g('ct-visual-render') || 'render.png'
+        render: g('ct-visual-render') || 'render.png',
+        map_title:    g('ct-visual-map-title'),
+        map_desc:     g('ct-visual-map-desc'),
+        map_list:     g('ct-visual-map-list'),
+        render_title: g('ct-visual-render-title'),
+        render_desc:  g('ct-visual-render-desc'),
+        render_list:  g('ct-visual-render-list')
       },
       contact: {
         phone: g('ct-contact-phone'), hours: g('ct-contact-hours'),

@@ -161,9 +161,9 @@
       <div class="visual-block">
         <div class="visual-text">
           <span class="sec-tag">LOCATION</span>
-          <h2>사업지 위치</h2>
-          <p>서울 구로구 가리봉동 일대, 남부순환로(40m)와 가로변(40m)을 접하는 핵심 입지입니다. 남구로역 인근으로 G-Valley(서울디지털국가산업단지)와 인접하며 교통·생활 인프라가 뛰어납니다.</p>
-          <ul class="visual-list">
+          <h2 id="c-visual-map-title">사업지 위치</h2>
+          <p id="c-visual-map-desc">서울 구로구 가리봉동 일대, 남부순환로(40m)와 가로변(40m)을 접하는 핵심 입지입니다. 남구로역 인근으로 G-Valley(서울디지털국가산업단지)와 인접하며 교통·생활 인프라가 뛰어납니다.</p>
+          <ul class="visual-list" id="c-visual-map-list">
             <li>🚇 남구로역 인근 역세권</li>
             <li>🏭 G-Valley(구로디지털단지) 인접</li>
             <li>🛣️ 남부순환로 40m 대로변 접도</li>
@@ -182,9 +182,9 @@
       <div class="visual-block reverse">
         <div class="visual-text">
           <span class="sec-tag">RENDERING</span>
-          <h2>완공 후 조감도</h2>
-          <p>재개발 완료 후 가리봉2구역의 모습입니다. 최고 34층, 총 1,214세대 규모의 현대적 아파트 단지가 들어서며, 쾌적한 녹지와 상업시설을 갖춘 복합 주거공간으로 탈바꿈할 예정입니다.</p>
-          <ul class="visual-list">
+          <h2 id="c-visual-render-title">완공 후 조감도</h2>
+          <p id="c-visual-render-desc">재개발 완료 후 가리봉2구역의 모습입니다. 최고 34층, 총 1,214세대 규모의 현대적 아파트 단지가 들어서며, 쾌적한 녹지와 상업시설을 갖춘 복합 주거공간으로 탈바꿈할 예정입니다.</p>
+          <ul class="visual-list" id="c-visual-render-list">
             <li>🏙️ 최고 34층 / 총 1,214세대</li>
             <li>🌿 단지 내 녹지·조경 공간 조성</li>
             <li>🏪 저층부 상업·편의시설 계획</li>
@@ -457,6 +457,12 @@
   <script>
     function setHTML(id, val) { const el = document.getElementById(id); if (el && val) el.innerHTML = val.replace(/\n/g,'<br>'); }
     function setText(id, val) { const el = document.getElementById(id); if (el && val !== undefined) el.textContent = val; }
+    function setList(id, val) {
+      const el = document.getElementById(id);
+      if (!el || !val) return;
+      const items = val.split('\n').map(s => s.trim()).filter(Boolean);
+      if (items.length) el.innerHTML = items.map(t => '<li>' + t.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</li>').join('');
+    }
     fetch('./content.json?t=' + Date.now())
       .then(r => r.json())
       .then(c => {
@@ -495,6 +501,13 @@
         // 위치·조감도 이미지
         if (c.visual?.map)    { const m = document.getElementById('c-visual-map');    if (m) m.src = c.visual.map; }
         if (c.visual?.render) { const r = document.getElementById('c-visual-render'); if (r) r.src = c.visual.render; }
+        // 위치·조감도 텍스트
+        setText('c-visual-map-title',    c.visual?.map_title);
+        setText('c-visual-map-desc',     c.visual?.map_desc);
+        setList('c-visual-map-list',     c.visual?.map_list);
+        setText('c-visual-render-title', c.visual?.render_title);
+        setText('c-visual-render-desc',  c.visual?.render_desc);
+        setList('c-visual-render-list',  c.visual?.render_list);
         // 문의
         setText('c-contact-phone',   c.contact?.phone);
         setText('c-contact-hours',   c.contact?.hours);
