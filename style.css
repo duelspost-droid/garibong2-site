@@ -410,6 +410,15 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
   display: flex; align-items: center; gap: 10px;
   background: var(--gray50); border: 1px solid var(--gray200);
   border-radius: 8px; padding: 10px 16px;
+  white-space: nowrap;
+}
+
+/* 모바일: 긴 항목도 한 줄 유지 (글자·여백 자동 축소) */
+@media (max-width: 640px) {
+  .visual-list li {
+    font-size: clamp(10.5px, 3.4vw, 13px);
+    gap: 7px; padding: 10px 12px; letter-spacing: -0.3px;
+  }
 }
 
 .visual-img-wrap {
