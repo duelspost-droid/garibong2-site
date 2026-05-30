@@ -772,7 +772,8 @@
     const cBtn = document.getElementById('tabbtn-content');
     const sBtn = document.getElementById('tabbtn-setting');
     const stBtn = document.getElementById('tabbtn-stats');
-    if (cBtn) cBtn.style.display = sup ? '' : 'none';
+    // 홈페이지 내용: 일반 관리자도 가능 / 통계·설정: 슈퍼 전용
+    if (cBtn) cBtn.style.display = '';
     if (sBtn) sBtn.style.display = sup ? '' : 'none';
     if (stBtn) stBtn.style.display = sup ? '' : 'none';
     // 일반 관리자가 혹시 다른 탭에 있으면 공지로 복귀
@@ -920,8 +921,8 @@
 
   // ── 탭 전환 ──────────────────────────────────────
   window.switchTab = (tab) => {
-    // 일반 관리자는 공지사항만 접근 가능
-    if (!isSuper() && tab !== 'notice') { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
+    // 일반 관리자: 공지사항·홈페이지 내용 가능 / 통계·설정은 슈퍼 전용
+    if (!isSuper() && (tab === 'stats' || tab === 'setting')) { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
     const tabs = ['notice','content','stats','setting'];
     tabs.forEach(t => {
       document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
@@ -1005,7 +1006,6 @@
 
   // ── content.json 저장 ─────────────────────────────
   window.saveContent = async () => {
-    if (!isSuper()) { showToast('홈페이지 내용 수정은 슈퍼 관리자만 가능합니다', true); return; }
     const c = {
       hero: {
         tag: g('ct-hero-tag'), title1: g('ct-hero-title1'), title2: g('ct-hero-title2'),

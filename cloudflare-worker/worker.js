@@ -112,7 +112,7 @@ async function handleGh(request, env, cors, url) {
     let body = {}; try { body = await request.json(); } catch (e) {}
     const { path, content, message, sha } = body;
     if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
-    if (role === 'staff' && path !== 'notices.json') return json({ error: 'staff cannot edit this file' }, 403, cors);
+    // 슈퍼·일반 관리자 모두 공지·홈페이지 내용·이미지 수정 가능 (비밀번호 변경은 별도 엔드포인트로 슈퍼 전용)
     if (typeof content !== 'string') return json({ error: 'content required' }, 400, cors);
     const payload = { message: message || 'update via admin', content };
     if (sha) payload.sha = sha;
