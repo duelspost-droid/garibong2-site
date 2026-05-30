@@ -416,9 +416,13 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 /* 모바일: 긴 항목도 한 줄 유지 (글자·여백 자동 축소) */
 @media (max-width: 640px) {
   .visual-list li {
-    font-size: clamp(10.5px, 3.4vw, 13px);
-    gap: 7px; padding: 10px 12px; letter-spacing: -0.3px;
+    font-size: clamp(9px, 2.7vw, 13px);
+    gap: 6px; padding: 9px 11px; letter-spacing: -0.4px;
+    overflow: hidden;
   }
+}
+@media (max-width: 380px) {
+  .visual-list li { font-size: 8.5px; gap: 5px; padding: 8px 10px; }
 }
 
 .visual-img-wrap {
