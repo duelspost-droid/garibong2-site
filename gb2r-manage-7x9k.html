@@ -506,43 +506,34 @@
 
     <!-- ══ 설정 탭 ══ -->
     <div id="tab-setting" style="display:none">
+
     <div class="card">
-      <div class="card-title">⚙️ 관리자 설정</div>
-      <div style="display:flex; gap:12px; flex-wrap:wrap;">
-        <button class="btn-setting" onclick="openPwModal()">🔑 내 비밀번호 변경</button>
-        <button class="btn-setting btn-danger" onclick="resetToken()">🔄 GitHub 토큰 재설정</button>
+      <div class="card-title">🔑 비밀번호 관리</div>
+      <p style="font-size:13.5px; color:#475569; line-height:1.8;">
+        로그인 비밀번호는 보안을 위해 <strong style="color:#0d2461;">서버(Cloudflare Worker)에서 관리</strong>됩니다.
+        브라우저나 코드에 저장되지 않습니다.
+      </p>
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px 18px; margin-top:14px; font-size:13px; color:#334155; line-height:1.9;">
+        <strong>변경 방법</strong><br>
+        1. <a href="https://dash.cloudflare.com" target="_blank" rel="noopener" style="color:#2563eb;">dash.cloudflare.com</a> 로그인<br>
+        2. Workers &amp; Pages → <strong>garibong2-audit</strong> → Settings → Variables<br>
+        3. <strong>ADMIN_PW</strong>(슈퍼 관리자) 또는 <strong>STAFF_PW</strong>(일반 관리자) 값 수정<br>
+        4. <strong>Deploy</strong> 클릭 → 즉시 적용
       </div>
+      <p style="font-size:12px; color:#94a3b8; margin-top:12px;">
+        ※ 비밀번호가 곧 슈퍼/일반 관리자 구분입니다. ADMIN_PW로 로그인 = 슈퍼, STAFF_PW로 로그인 = 일반.
+      </p>
     </div>
 
-    <!-- 슈퍼 관리자 전용: 일반 관리자 계정 관리 -->
-    <div class="card" id="staffPwBox">
-      <div class="card-title">👥 일반 관리자 계정</div>
+    <div class="card">
+      <div class="card-title">🧹 브라우저 정리</div>
       <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
-        일반 관리자는 <strong>공지사항 관리만</strong> 가능하며, 홈페이지 내용·설정·토큰에는 접근할 수 없습니다.
-        아래에서 일반 관리자 로그인 비밀번호를 설정하세요.
+        이전 방식에서 브라우저에 남아있을 수 있는 토큰·키 등 잔여 데이터를 삭제합니다.
+        (로그인은 비밀번호로만 이뤄지므로 삭제해도 문제없습니다.)
       </p>
-      <button class="btn-setting" onclick="openStaffPwModal()">🔑 일반 관리자 비밀번호 설정</button>
+      <button class="btn-setting btn-danger" onclick="clearBrowserData()">🧹 브라우저 잔여 데이터 삭제</button>
     </div>
 
-    <!-- 슈퍼 전용: 감사 로그 백엔드(Cloudflare Worker) -->
-    <div class="card" id="auditBackendBox">
-      <div class="card-title">☁️ 감사 로그 백엔드 (선택)</div>
-      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
-        Cloudflare Worker를 연결하면 <strong>모든 기기의 로그인</strong>을 한곳에 모아
-        <strong>실제 IP·국가</strong>까지 기록·조회할 수 있습니다. (설정 안 하면 이 기기 기록만 사용)
-      </p>
-      <div class="form-row">
-        <div class="field"><label>Worker 주소 (https://....workers.dev)</label><input class="finput" id="ct-audit-api" placeholder="https://garibong2-audit.xxx.workers.dev"/></div>
-      </div>
-      <div class="form-row">
-        <div class="field"><label>조회 비밀키 (AUDIT_SECRET)</label><input class="finput" type="password" id="ct-audit-secret" placeholder="Worker에 설정한 비밀키"/></div>
-      </div>
-      <div class="form-row">
-        <div class="field"><label>토큰 프록시 키 (PROXY_KEY) <span style="color:#aaa;font-weight:400;">— 토큰 숨기기용</span></label><input class="finput" type="password" id="ct-proxy-key" placeholder="Worker에 설정한 PROXY_KEY (선택)"/></div>
-      </div>
-      <button class="btn-setting" onclick="saveAuditBackend()">💾 백엔드 설정 저장</button>
-      <span id="auditBackendStatus" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
-    </div>
     </div><!-- /tab-setting -->
   </div>
 </div>
@@ -581,60 +572,6 @@
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
       <button class="btn-save"   onclick="saveEdit()">저장</button>
-    </div>
-  </div>
-</div>
-
-<!-- 비밀번호 변경 모달 -->
-<div class="modal-bg" id="pwModal">
-  <div class="modal">
-    <h3>🔑 비밀번호 변경</h3>
-    <div class="form-row">
-      <div class="field">
-        <label>현재 비밀번호</label>
-        <input class="finput" type="password" id="pwCurrent" placeholder="현재 비밀번호"/>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>새 비밀번호</label>
-        <input class="finput" type="password" id="pwNew" placeholder="새 비밀번호 (6자 이상)"/>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>새 비밀번호 확인</label>
-        <input class="finput" type="password" id="pwConfirm" placeholder="새 비밀번호 다시 입력"/>
-      </div>
-    </div>
-    <p style="font-size:12px;color:#94a3b8;margin-top:4px;">변경된 비밀번호는 이 브라우저에 저장됩니다.</p>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closePwModal()">취소</button>
-      <button class="btn-save"   onclick="changePw()">변경하기</button>
-    </div>
-  </div>
-</div>
-
-<!-- 일반 관리자 비밀번호 설정 모달 (슈퍼 전용) -->
-<div class="modal-bg" id="staffPwModal">
-  <div class="modal">
-    <h3>👥 일반 관리자 비밀번호 설정</h3>
-    <div class="form-row">
-      <div class="field">
-        <label>새 일반 관리자 비밀번호</label>
-        <input class="finput" type="password" id="staffPwNew" placeholder="새 비밀번호 (6자 이상)"/>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="field">
-        <label>비밀번호 확인</label>
-        <input class="finput" type="password" id="staffPwConfirm" placeholder="다시 입력"/>
-      </div>
-    </div>
-    <p style="font-size:12px;color:#94a3b8;margin-top:4px;">일반 관리자에게 이 비밀번호를 전달하세요. (현재 기본값: staff2024!)</p>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeStaffPwModal()">취소</button>
-      <button class="btn-save"   onclick="changeStaffPw()">설정하기</button>
     </div>
   </div>
 </div>
@@ -838,9 +775,6 @@
     if (cBtn) cBtn.style.display = sup ? '' : 'none';
     if (sBtn) sBtn.style.display = sup ? '' : 'none';
     if (stBtn) stBtn.style.display = sup ? '' : 'none';
-    // 슈퍼 전용 설정(일반 관리자 비번 관리) 노출
-    const staffMgmt = document.getElementById('staffPwBox');
-    if (staffMgmt) staffMgmt.style.display = sup ? '' : 'none';
     // 일반 관리자가 혹시 다른 탭에 있으면 공지로 복귀
     if (!sup) switchTab('notice');
   }
@@ -997,7 +931,6 @@
     });
     if (tab === 'content') loadContent();
     if (tab === 'stats')   { loadStats(); renderAudit(); }
-    if (tab === 'setting') fillAuditBackend();
   };
 
   // ── content.json 로드 ─────────────────────────────
@@ -1199,52 +1132,11 @@
   };
 
   // ── 비밀번호 변경 ─────────────────────────────────
-  window.openPwModal  = () => {
-    document.getElementById('pwCurrent').value = '';
-    document.getElementById('pwNew').value     = '';
-    document.getElementById('pwConfirm').value = '';
-    document.getElementById('pwModal').classList.add('open');
-  };
-  window.closePwModal = () => document.getElementById('pwModal').classList.remove('open');
-  window.changePw     = () => {
-    const cur     = document.getElementById('pwCurrent').value;
-    const nw      = document.getElementById('pwNew').value;
-    const confirm = document.getElementById('pwConfirm').value;
-    if (cur !== getAdminPw()) { showToast('현재 비밀번호가 틀렸습니다', true); return; }
-    if (nw.length < 6)        { showToast('새 비밀번호는 6자 이상이어야 합니다', true); return; }
-    if (nw !== confirm)       { showToast('새 비밀번호가 일치하지 않습니다', true); return; }
-    localStorage.setItem('admin_pw', nw);
-    closePwModal();
-    showToast('✅ 비밀번호가 변경되었습니다');
-  };
-
-  // ── 일반 관리자 비밀번호 설정 (슈퍼 전용) ─────────
-  window.openStaffPwModal  = () => {
-    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
-    document.getElementById('staffPwNew').value = '';
-    document.getElementById('staffPwConfirm').value = '';
-    document.getElementById('staffPwModal').classList.add('open');
-  };
-  window.closeStaffPwModal = () => document.getElementById('staffPwModal').classList.remove('open');
-  window.changeStaffPw     = () => {
-    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
-    const nw      = document.getElementById('staffPwNew').value;
-    const confirm = document.getElementById('staffPwConfirm').value;
-    if (nw.length < 6) { showToast('비밀번호는 6자 이상이어야 합니다', true); return; }
-    if (nw !== confirm){ showToast('비밀번호가 일치하지 않습니다', true); return; }
-    if (nw === getAdminPw()) { showToast('슈퍼 관리자 비밀번호와 다르게 설정하세요', true); return; }
-    localStorage.setItem('staff_pw', nw);
-    closeStaffPwModal();
-    showToast('✅ 일반 관리자 비밀번호가 설정되었습니다');
-  };
-
-  // ── GitHub 토큰 재설정 ────────────────────────────
-  window.resetToken = () => {
-    if (!confirm('GitHub 토큰을 재설정하면 다음 로그인 시 토큰을 다시 입력해야 합니다. 계속할까요?')) return;
-    localStorage.removeItem('gh_token_enc');
-    sessionStorage.clear();
-    showToast('🔄 토큰이 삭제되었습니다. 다시 로그인해주세요');
-    setTimeout(() => location.reload(), 1500);
+  // ── 브라우저 잔여 데이터 삭제 ─────────────────────
+  window.clearBrowserData = () => {
+    if (!confirm('브라우저에 남아있는 토큰·키 등 잔여 데이터를 삭제할까요? (로그인은 비밀번호로 계속 가능합니다)')) return;
+    ['gh_token_enc','admin_pw','staff_pw','audit_api','audit_secret','proxy_key'].forEach(k => localStorage.removeItem(k));
+    showToast('🧹 잔여 데이터를 삭제했습니다');
   };
 
   // ── 방문 통계 ─────────────────────────────────────
@@ -1291,31 +1183,12 @@
     document.getElementById('statsDaily').innerHTML = rows;
   }
 
-  // ── 감사 로그 백엔드(Worker) 설정 ─────────────────
+  // ── 레거시 폴백용 헬퍼 (백엔드 미동작 시에만 사용) ──
   function getAuditApi()    { return (localStorage.getItem('audit_api') || '').replace(/\/+$/,''); }
   function getAuditSecret() { return localStorage.getItem('audit_secret') || ''; }
   function getProxyKey()    { return localStorage.getItem('proxy_key') || ''; }
   function hasAuditBackend(){ return !!(getAuditApi() && getAuditSecret()); }
   function hasProxy()       { return !!(getAuditApi() && getProxyKey()); }
-  window.saveAuditBackend = () => {
-    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
-    const api = document.getElementById('ct-audit-api').value.trim();
-    const sec = document.getElementById('ct-audit-secret').value.trim();
-    const pk  = document.getElementById('ct-proxy-key').value.trim();
-    if (api && !/^https:\/\/.+/.test(api)) { showToast('Worker 주소는 https:// 로 시작해야 합니다', true); return; }
-    if (api) localStorage.setItem('audit_api', api); else localStorage.removeItem('audit_api');
-    if (sec) localStorage.setItem('audit_secret', sec); else localStorage.removeItem('audit_secret');
-    if (pk)  localStorage.setItem('proxy_key', pk);     else localStorage.removeItem('proxy_key');
-    fillAuditBackend();
-    showToast('💾 백엔드 설정이 저장되었습니다' + (hasProxy() ? ' (토큰 프록시 활성화)' : ''));
-  };
-  function fillAuditBackend() {
-    const a = document.getElementById('ct-audit-api'); if (a) a.value = getAuditApi();
-    const s = document.getElementById('ct-audit-secret'); if (s) s.value = getAuditSecret();
-    const p = document.getElementById('ct-proxy-key'); if (p) p.value = getProxyKey();
-    const st = document.getElementById('auditBackendStatus');
-    if (st) st.textContent = (hasAuditBackend() ? '✅ 감사 백엔드 연결됨' : '감사: 미설정') + (hasProxy() ? ' · 🔒 토큰 프록시 ON' : '');
-  }
 
   // ── GitHub 호출: 백엔드(비밀번호) > 프록시키 > 직접토큰 ──
   async function ghGet(path) {
