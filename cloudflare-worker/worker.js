@@ -18,13 +18,25 @@ const KV_PW   = 'pw';
 const KV_PERM = 'perms';
 const MAX_ENTRIES = 300;
 
-// 일반 관리자 기본 권한
-const DEFAULT_PERMS = { notices: true, content: true };
+// 일반 관리자 권한 (세부) — 기본값 모두 허용
 async function getPerms(env) {
   let p = {};
   try { p = JSON.parse((await env.AUDIT.get(KV_PERM)) || '{}'); } catch (e) {}
-  return { notices: p.notices !== false, content: p.content !== false };
+  const c = p.content || {}, s = p.stats || {};
+  return {
+    notices: p.notices !== false,
+    content: {
+      hero:     c.hero     !== false,
+      about:    c.about    !== false,
+      greeting: c.greeting !== false,
+      visual:   c.visual   !== false,
+      officers: c.officers !== false,
+      contact:  c.contact  !== false
+    },
+    stats: { visits: s.visits !== false, audit: s.audit !== false }
+  };
 }
+function contentAny(perms) { return Object.values(perms.content).some(Boolean); }
 
 const ALLOW_PATHS = [
   /^notices\.json$/,
@@ -114,7 +126,12 @@ async function permsSet(request, env, cors) {
   const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
   if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
   let body = {}; try { body = await request.json(); } catch (e) {}
-  const perms = { notices: !!body.notices, content: !!body.content };
+  const c = body.content || {}, s = body.stats || {};
+  const perms = {
+    notices: !!body.notices,
+    content: { hero:!!c.hero, about:!!c.about, greeting:!!c.greeting, visual:!!c.visual, officers:!!c.officers, contact:!!c.contact },
+    stats: { visits:!!s.visits, audit:!!s.audit }
+  };
   await env.AUDIT.put(KV_PERM, JSON.stringify(perms));
   return json({ ok: true, perms }, 200, cors);
 }
@@ -147,8 +164,8 @@ async function handleGh(request, env, cors, url) {
     if (role === 'staff') {
       const perms = await getPerms(env);
       const isNotices = (path === 'notices.json');
-      if (isNotices && !perms.notices)  return json({ error: 'no permission (notices)' }, 403, cors);
-      if (!isNotices && !perms.content) return json({ error: 'no permission (content)' }, 403, cors);
+      if (isNotices && !perms.notices)      return json({ error: 'no permission (notices)' }, 403, cors);
+      if (!isNotices && !contentAny(perms)) return json({ error: 'no permission (content)' }, 403, cors);
     }
     if (typeof content !== 'string') return json({ error: 'content required' }, 400, cors);
     const payload = { message: message || 'update via admin', content };
@@ -180,7 +197,11 @@ async function auditPost(request, env, cors) {
 
 async function auditGet(request, env, cors) {
   const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
-  if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
+  if (!role) return json({ error: 'unauthorized' }, 401, cors);
+  if (role === 'staff') {
+    const perms = await getPerms(env);
+    if (!perms.stats.audit) return json({ error: 'unauthorized' }, 401, cors);
+  }
   let log = [];
   try { log = JSON.parse((await env.AUDIT.get(KV_LOG)) || '[]'); } catch (e) {}
   return json({ log }, 200, cors);

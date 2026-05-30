@@ -94,6 +94,8 @@
       padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s;
     }
     .btn-small:hover { background: #2563eb; }
+    .perm-chk { display:flex; align-items:center; gap:10px; font-size:14px; color:#334155; margin:8px 0; cursor:pointer; }
+    .perm-chk input { width:18px; height:18px; flex-shrink:0; }
 
     /* ── 목록 ── */
     .list-head {
@@ -325,7 +327,7 @@
 
     <!-- ══ 홈페이지 내용 탭 ══ -->
     <div id="tab-content" style="display:none">
-    <div class="card">
+    <div class="card" data-sec="hero">
       <div class="card-title">🏠 히어로 섹션</div>
       <div class="form-row"><div class="field"><label>태그라인</label><input class="finput" id="ct-hero-tag"/></div></div>
       <div class="form-row">
@@ -340,7 +342,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sec="about">
       <div class="card-title">🏢 조합 소개</div>
       <div class="form-row"><div class="field"><label>구역 소개 문구</label><textarea class="finput ftextarea" id="ct-about-intro" style="min-height:80px"></textarea></div></div>
       <div class="form-row">
@@ -354,7 +356,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sec="greeting">
       <div class="card-title">👤 조합장 인사말</div>
       <div class="form-row">
         <div class="field"><label>조합장 이름</label><input class="finput" id="ct-greeting-chairman"/></div>
@@ -382,7 +384,7 @@
       <div class="form-row"><div class="field"><label>인사말 5단락 (마무리)</label><input class="finput" id="ct-greeting-p5"/></div></div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sec="visual">
       <div class="card-title">🏙️ 위치도 · 완공 조감도</div>
       <div class="form-row">
         <div class="field">
@@ -434,7 +436,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-sec="officers">
       <div class="card-title">🧑‍💼 임원소개 페이지</div>
       <div class="form-row">
         <div class="field"><label>상단 제목</label><input class="finput" id="ct-officers-intro-title"/></div>
@@ -457,7 +459,7 @@
       <p style="font-size:12px; color:#888; margin-top:-4px;">※ 조합장 이름·사진은 위 '조합장 인사말' 설정이 자동 반영됩니다.</p>
     </div>
 
-    <div class="card">
+    <div class="card" data-sec="contact">
       <div class="card-title">📞 문의 / 연락처</div>
       <div class="form-row">
         <div class="field"><label>대표전화</label><input class="finput" id="ct-contact-phone"/></div>
@@ -477,7 +479,7 @@
 
     <!-- ══ 통계·기록 탭 ══ -->
     <div id="tab-stats" style="display:none">
-      <div class="card">
+      <div class="card" id="statsVisitsCard">
         <div class="card-title">📊 홈페이지 방문 통계</div>
         <div id="statsSummary" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:18px;">
           <div style="flex:1; min-width:140px; background:#0d2461; color:#fff; border-radius:12px; padding:20px; text-align:center;">
@@ -496,7 +498,7 @@
         </p>
       </div>
 
-      <div class="card">
+      <div class="card" id="statsAuditCard">
         <div class="card-title">🔐 관리자 로그인 감사기록</div>
         <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">일시 · 계정 · 결과 · 기기 · IP 주소를 기록합니다. (이 기기 기준, 최대 100건)</p>
         <div id="auditList" style="font-size:13px;">기록 없음</div>
@@ -535,19 +537,31 @@
     </div>
 
     <div class="card">
-      <div class="card-title">👥 일반 관리자 권한</div>
-      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
-        일반 관리자가 수정할 수 있는 항목을 선택하세요. 변경 즉시 적용됩니다.
-        (통계·설정·비밀번호 관리는 항상 슈퍼 관리자 전용입니다.)
+      <div class="card-title">👥 일반 관리자 권한 (세부 설정)</div>
+      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:6px;">
+        일반 관리자가 접근·수정할 수 있는 항목을 세부적으로 선택하세요. 변경 즉시 적용됩니다.
+        (설정·비밀번호·권한 관리는 항상 슈퍼 전용입니다.)
       </p>
-      <label style="display:flex; align-items:center; gap:10px; font-size:14px; color:#334155; margin:10px 0; cursor:pointer;">
-        <input type="checkbox" id="perm-notices" style="width:18px; height:18px;"/> 📋 공지사항 작성·수정
-      </label>
-      <label style="display:flex; align-items:center; gap:10px; font-size:14px; color:#334155; margin:10px 0; cursor:pointer;">
-        <input type="checkbox" id="perm-content" style="width:18px; height:18px;"/> ✏️ 홈페이지 내용 수정 (글·이미지)
-      </label>
-      <button class="btn-setting" style="margin-top:10px;" onclick="savePerms()">💾 권한 저장</button>
-      <span id="permStatus" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
+
+      <div style="font-size:13px; font-weight:700; color:#0d2461; margin:16px 0 6px;">📋 공지사항</div>
+      <label class="perm-chk"><input type="checkbox" id="perm-notices"/> 공지사항 작성·수정</label>
+
+      <div style="font-size:13px; font-weight:700; color:#0d2461; margin:16px 0 6px;">✏️ 홈페이지 내용 (섹션별)</div>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-hero"/> 🏠 히어로 섹션</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-about"/> 🏢 조합 소개</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-greeting"/> 👤 조합장 인사말</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-visual"/> 🏙️ 위치도·조감도</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-officers"/> 🧑‍💼 임원소개</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-contact"/> 📞 문의·연락처</label>
+
+      <div style="font-size:13px; font-weight:700; color:#0d2461; margin:16px 0 6px;">📊 통계·기록</div>
+      <label class="perm-chk"><input type="checkbox" id="perm-s-visits"/> 방문 통계 보기</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-s-audit"/> 로그인 감사기록 보기 <span style="color:#dc2626;font-size:11px;">(IP 포함 민감정보)</span></label>
+
+      <div style="margin-top:14px;">
+        <button class="btn-setting" onclick="savePerms()">💾 권한 저장</button>
+        <span id="permStatus" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
+      </div>
     </div>
 
     </div><!-- /tab-setting -->
@@ -614,8 +628,30 @@
   function getRole() { return sessionStorage.getItem('admin_role') || ''; }
   function isSuper()  { return getRole() === 'super'; }
   function getStaffPerms() {
-    try { const p = JSON.parse(sessionStorage.getItem('staff_perms') || '{}'); return { notices: p.notices !== false, content: p.content !== false }; }
-    catch(e) { return { notices: true, content: true }; }
+    let p = {};
+    try { p = JSON.parse(sessionStorage.getItem('staff_perms') || '{}'); } catch(e) {}
+    const c = p.content || {}, s = p.stats || {};
+    return {
+      notices: p.notices !== false,
+      content: {
+        hero: c.hero !== false, about: c.about !== false, greeting: c.greeting !== false,
+        visual: c.visual !== false, officers: c.officers !== false, contact: c.contact !== false
+      },
+      stats: { visits: s.visits !== false, audit: s.audit !== false }
+    };
+  }
+  function contentAny(p) { return Object.values(p.content).some(Boolean); }
+  function statsAny(p)   { return p.stats.visits || p.stats.audit; }
+  // 섹션·카드 단위 표시/숨김 (일반 관리자)
+  function applySections() {
+    const sup = isSuper(); const p = getStaffPerms();
+    document.querySelectorAll('[data-sec]').forEach(el => {
+      el.style.display = (sup || p.content[el.getAttribute('data-sec')]) ? '' : 'none';
+    });
+    const vc = document.getElementById('statsVisitsCard');
+    const ac = document.getElementById('statsAuditCard');
+    if (vc) vc.style.display = (sup || p.stats.visits) ? '' : 'none';
+    if (ac) ac.style.display = (sup || p.stats.audit) ? '' : 'none';
   }
   // ───────────────────────────────────────────────────
 
@@ -794,13 +830,15 @@
     const sBtn = document.getElementById('tabbtn-setting');
     const stBtn = document.getElementById('tabbtn-stats');
     const perms = getStaffPerms();
-    // 일반 관리자: 슈퍼가 부여한 권한대로 탭 노출 / 통계·설정은 슈퍼 전용
+    const cAny = contentAny(perms), sAny = statsAny(perms);
+    // 일반 관리자: 권한대로 탭 노출 / 설정은 슈퍼 전용
     if (nBtn) nBtn.style.display = (sup || perms.notices) ? '' : 'none';
-    if (cBtn) cBtn.style.display = (sup || perms.content) ? '' : 'none';
+    if (cBtn) cBtn.style.display = (sup || cAny) ? '' : 'none';
+    if (stBtn) stBtn.style.display = (sup || sAny) ? '' : 'none';
     if (sBtn) sBtn.style.display = sup ? '' : 'none';
-    if (stBtn) stBtn.style.display = sup ? '' : 'none';
+    applySections();
     // 일반 관리자는 허용된 첫 탭으로 이동
-    if (!sup) switchTab(perms.notices ? 'notice' : (perms.content ? 'content' : 'notice'));
+    if (!sup) switchTab(perms.notices ? 'notice' : (cAny ? 'content' : (sAny ? 'stats' : 'notice')));
   }
 
   if (isLoggedIn()) showAdmin();
@@ -944,12 +982,13 @@
 
   // ── 탭 전환 ──────────────────────────────────────
   window.switchTab = (tab) => {
-    // 일반 관리자: 통계·설정은 슈퍼 전용, 내용 탭은 권한 필요
+    // 일반 관리자: 설정은 슈퍼 전용, 나머지는 권한 필요
     if (!isSuper()) {
-      if (tab === 'stats' || tab === 'setting') { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
       const perms = getStaffPerms();
-      if (tab === 'content' && !perms.content) { showToast('홈페이지 내용 수정 권한이 없습니다', true); return; }
-      if (tab === 'notice'  && !perms.notices) { showToast('공지사항 관리 권한이 없습니다', true); return; }
+      if (tab === 'setting') { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
+      if (tab === 'content' && !contentAny(perms)) { showToast('홈페이지 내용 권한이 없습니다', true); return; }
+      if (tab === 'notice'  && !perms.notices)     { showToast('공지사항 관리 권한이 없습니다', true); return; }
+      if (tab === 'stats'   && !statsAny(perms))   { showToast('통계 보기 권한이 없습니다', true); return; }
     }
     const tabs = ['notice','content','stats','setting'];
     tabs.forEach(t => {
@@ -1162,23 +1201,32 @@
 
   // ── 비밀번호 변경 ─────────────────────────────────
   // ── 일반 관리자 권한 관리 (슈퍼 전용) ─────────────
+  function setChk(id, v) { const el = document.getElementById(id); if (el) el.checked = v !== false; }
+  function getChk(id) { const el = document.getElementById(id); return el ? el.checked : false; }
   async function loadPerms() {
     if (!isSuper() || !backendOn()) return;
     const st = document.getElementById('permStatus');
     try {
       const r = await fetch(WORKER_URL + '/api/perms', { headers: { 'X-Admin-Pw': sessionPw() } });
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      document.getElementById('perm-notices').checked = j.perms.notices !== false;
-      document.getElementById('perm-content').checked = j.perms.content !== false;
+      const p = (await r.json()).perms;
+      const c = p.content || {}, s = p.stats || {};
+      setChk('perm-notices', p.notices);
+      setChk('perm-c-hero', c.hero); setChk('perm-c-about', c.about); setChk('perm-c-greeting', c.greeting);
+      setChk('perm-c-visual', c.visual); setChk('perm-c-officers', c.officers); setChk('perm-c-contact', c.contact);
+      setChk('perm-s-visits', s.visits); setChk('perm-s-audit', s.audit);
       if (st) st.textContent = '';
     } catch(e) { if (st) st.textContent = '권한 불러오기 실패'; }
   }
   window.savePerms = async () => {
     if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
     const perms = {
-      notices: document.getElementById('perm-notices').checked,
-      content: document.getElementById('perm-content').checked
+      notices: getChk('perm-notices'),
+      content: {
+        hero: getChk('perm-c-hero'), about: getChk('perm-c-about'), greeting: getChk('perm-c-greeting'),
+        visual: getChk('perm-c-visual'), officers: getChk('perm-c-officers'), contact: getChk('perm-c-contact')
+      },
+      stats: { visits: getChk('perm-s-visits'), audit: getChk('perm-s-audit') }
     };
     document.getElementById('savingOverlay').classList.add('show');
     try {
