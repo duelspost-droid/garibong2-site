@@ -198,6 +198,44 @@
       font-weight: 700; color: #0d2461; gap: 10px;
     }
     .saving-overlay.show { display: flex; }
+
+    /* ── 모바일 반응형 ── */
+    @media (max-width: 640px) {
+      .admin-header { padding: 0 14px; height: 56px; }
+      .admin-header h1 { font-size: 13px; }
+      .admin-header .user-chip, #roleBadge { font-size: 11px; padding: 3px 8px; }
+      .admin-header-left { gap: 8px; }
+      .head-right { gap: 8px; }
+      .head-right a { font-size: 12px; }
+      .btn-logout { padding: 6px 10px; font-size: 11px; }
+
+      .admin-body { padding: 18px 12px; }
+      .card { padding: 18px 16px; border-radius: 12px; margin-bottom: 16px; }
+      .card-title { font-size: 15px; }
+
+      /* 탭: 가로 스크롤 */
+      .tab-bar { padding: 0 8px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+      .tab-bar::-webkit-scrollbar { display: none; }
+      .tab-btn { padding: 12px 13px; font-size: 13px; white-space: nowrap; flex: 0 0 auto; }
+
+      /* 폼: 한 줄에 하나씩 */
+      .form-row { flex-direction: column; gap: 10px; margin-bottom: 12px; }
+      .form-row .field { max-width: none !important; width: 100%; }
+      .finput, .ftextarea { font-size: 16px; } /* iOS 확대 방지 */
+
+      .btn-submit, .btn-setting, .btn-small { width: 100%; }
+      .btn-login { font-size: 15px; }
+      .login-box { padding: 28px 20px; }
+
+      /* 모달 */
+      .modal { width: 92vw; max-width: 92vw; padding: 20px; }
+      .modal-btns { flex-direction: column; gap: 8px; }
+      .modal-btns button { width: 100%; }
+
+      /* 통계 요약 박스 가독성 */
+      #statsSummary > div, #auditSummary > div { flex: 1 1 calc(50% - 10px); }
+      .period-btn { flex: 1 1 calc(50% - 6px); }
+    }
   </style>
 </head>
 <body>
