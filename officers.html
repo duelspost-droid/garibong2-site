@@ -127,8 +127,8 @@
   <section class="off-hero">
     <div class="container">
       <span class="sec-tag">ORGANIZATION</span>
-      <h1>임원 소개</h1>
-      <p>조합원 여러분의 신뢰 속에 가리봉2구역의 미래를 함께 만들어 갑니다.</p>
+      <h1 id="o-intro-title">임원 소개</h1>
+      <p id="o-intro-desc">조합원 여러분의 신뢰 속에 가리봉2구역의 미래를 함께 만들어 갑니다.</p>
     </div>
   </section>
 
@@ -164,7 +164,7 @@
       <h2>이사</h2>
       <p class="sub">DIRECTORS</p>
       <div class="off-grid" id="o-directors"></div>
-      <p class="off-note">※ 임원 개인 연락처는 개인정보 보호를 위해 공개하지 않습니다. 조합 사무실로 문의해 주세요.</p>
+      <p class="off-note" id="o-note">※ 임원 개인 연락처는 개인정보 보호를 위해 공개하지 않습니다. 조합 사무실로 문의해 주세요.</p>
       <div style="text-align:center;">
         <a href="index.html" class="back-home">← 홈으로 돌아가기</a>
       </div>
@@ -221,10 +221,15 @@
       .then(c => {
         if (c.greeting?.chairman) document.getElementById('o-chair-name').textContent = c.greeting.chairman;
         if (c.greeting?.photo)    document.getElementById('o-chair-photo').src = c.greeting.photo;
-        if (c.greeting?.p1 || c.greeting?.p4) {
-          document.getElementById('o-chair-quote').textContent =
-            (c.greeting.p1 || '') + ' ' + (c.greeting.p4 || '');
-        }
+        // 조합장 한마디: officers.chair_quote 우선, 없으면 인사말 요약
+        const q = (c.officers?.chair_quote && c.officers.chair_quote.trim())
+          ? c.officers.chair_quote
+          : ((c.greeting?.p1 || '') + ' ' + (c.greeting?.p4 || '')).trim();
+        if (q) document.getElementById('o-chair-quote').textContent = q;
+        // 상단 소개·하단 안내문
+        if (c.officers?.intro_title) document.getElementById('o-intro-title').textContent = c.officers.intro_title;
+        if (c.officers?.intro_desc)  document.getElementById('o-intro-desc').textContent  = c.officers.intro_desc;
+        if (c.officers?.note)        document.getElementById('o-note').textContent         = c.officers.note;
         if (c.officers?.auditors)  auditors  = parseList(c.officers.auditors);
         if (c.officers?.directors) directors = parseList(c.officers.directors);
         renderOfficers();
