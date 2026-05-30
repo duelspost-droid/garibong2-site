@@ -58,17 +58,27 @@
     }
     .off-card {
       background: #fff; border: 1px solid #e7eaf1; border-radius: 14px;
-      padding: 30px 20px; text-align: center; transition: .18s;
+      padding: 30px 22px; text-align: center; transition: .18s; position: relative; overflow: hidden;
     }
     .off-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(13,36,97,.12); border-color: #c9d4ec; }
-    .off-avatar {
-      width: 76px; height: 76px; margin: 0 auto 16px; border-radius: 50%;
-      background: linear-gradient(135deg,#0d2461,#2563eb); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Jua', sans-serif; font-size: 30px;
+    /* 배경 심볼 워터마크 */
+    .off-card .wm {
+      position: absolute; right: -22px; top: -22px; width: 92px; height: 92px;
+      opacity: 0.05; pointer-events: none;
     }
-    .off-card .o-role { font-size: 13px; color: #2563eb; font-weight: 600; }
-    .off-card .o-name { font-size: 20px; font-weight: 800; color: #1a1a2e; margin-top: 3px; letter-spacing: 1px; }
+    .off-card .o-role {
+      display: inline-block; font-size: 12px; color: #2563eb; font-weight: 700;
+      letter-spacing: 1.5px; background: #eef3fe; padding: 4px 12px; border-radius: 20px;
+      position: relative; z-index: 1;
+    }
+    .off-card .o-name {
+      font-family: 'Jua', sans-serif; font-size: clamp(26px,3.2vw,32px);
+      color: #0d2461; margin-top: 14px; letter-spacing: 2px; position: relative; z-index: 1;
+    }
+    .off-card .o-line {
+      width: 34px; height: 3px; background: linear-gradient(90deg,#0d2461,#2563eb);
+      border-radius: 3px; margin: 14px auto 0; position: relative; z-index: 1;
+    }
 
     .off-note { text-align: center; color: #9aa3b5; font-size: 12.5px; margin-top: 34px; }
 
@@ -171,30 +181,41 @@
   <script>
     function toggleMenu(){ document.getElementById('mobileNav').classList.toggle('open'); }
 
-    // 임원 명단 (성함은 공개, 연락처 비공개)
-    const auditors = [
-      { role:'감사', name:'신수호' }
-    ];
-    const directors = [
-      { role:'이사', name:'김명식' },
-      { role:'이사', name:'서훈' },
-      { role:'이사', name:'설희경' },
-      { role:'이사', name:'김충식' },
-      { role:'이사', name:'박은경' },
-      { role:'이사', name:'한영택' }
-    ];
-    function card(p){
-      const initial = p.name.charAt(0);
+    // CI 심볼 (카드 워터마크용)
+    const SYM = `<svg class="wm" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <defs><clipPath id="oc"><circle cx="60" cy="60" r="54"/></clipPath></defs>
+      <circle cx="60" cy="60" r="54" fill="#0d2461"/>
+      <path d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#oc)"/>
+      <rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#oc)"/>
+      <polygon points="60,31 68,40 52,40" fill="white" clip-path="url(#oc)"/>
+      <rect x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#oc)"/>
+      <rect x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#oc)"/>
+      <circle cx="60" cy="60" r="54" stroke="white" stroke-width="1.8" fill="none"/></svg>`;
+
+    // 기본 명단 (content.json 없을 때 폴백)
+    let auditors  = ['신수호'];
+    let directors = ['김명식','서훈','설희경','김충식','박은경','한영택'];
+
+    function card(role, name){
       return `<div class="off-card">
-        <div class="off-avatar">${initial}</div>
-        <div class="o-role">${p.role}</div>
-        <div class="o-name">${p.name}</div>
+        ${SYM}
+        <div class="o-role">${role}</div>
+        <div class="o-name">${name}</div>
+        <div class="o-line"></div>
       </div>`;
     }
-    document.getElementById('o-auditors').innerHTML  = auditors.map(card).join('');
-    document.getElementById('o-directors').innerHTML = directors.map(card).join('');
+    function renderOfficers(){
+      document.getElementById('o-auditors').innerHTML  = auditors.map(n => card('감사', n)).join('');
+      document.getElementById('o-directors').innerHTML = directors.map(n => card('이사', n)).join('');
+    }
+    function parseList(v){
+      if (Array.isArray(v)) return v;
+      if (typeof v === 'string') return v.split('\n').map(s=>s.trim()).filter(Boolean);
+      return [];
+    }
+    renderOfficers();
 
-    // content.json에서 조합장 정보 동기화
+    // content.json 동기화 (조합장 + 임원 명단)
     fetch('./content.json?t=' + Date.now())
       .then(r => r.json())
       .then(c => {
@@ -204,6 +225,9 @@
           document.getElementById('o-chair-quote').textContent =
             (c.greeting.p1 || '') + ' ' + (c.greeting.p4 || '');
         }
+        if (c.officers?.auditors)  auditors  = parseList(c.officers.auditors);
+        if (c.officers?.directors) directors = parseList(c.officers.directors);
+        renderOfficers();
       })
       .catch(()=>{});
   </script>

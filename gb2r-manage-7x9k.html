@@ -412,6 +412,17 @@
     </div>
 
     <div class="card">
+      <div class="card-title">🧑‍💼 임원 명단 (임원소개 페이지)</div>
+      <div class="form-row">
+        <div class="field"><label>감사 (한 줄에 한 명씩)</label><textarea class="finput ftextarea" id="ct-officers-auditors" style="min-height:60px"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>이사 (한 줄에 한 명씩)</label><textarea class="finput ftextarea" id="ct-officers-directors" style="min-height:120px"></textarea></div>
+      </div>
+      <p style="font-size:12px; color:#888; margin-top:-4px;">※ 조합장은 위 '조합장 인사말'의 이름·사진이 자동 반영됩니다.</p>
+    </div>
+
+    <div class="card">
       <div class="card-title">📞 문의 / 연락처</div>
       <div class="form-row">
         <div class="field"><label>대표전화</label><input class="finput" id="ct-contact-phone"/></div>
@@ -846,6 +857,10 @@
       v('ct-visual-render-title', c.visual?.render_title);
       v('ct-visual-render-desc',  c.visual?.render_desc);
       v('ct-visual-render-list',  c.visual?.render_list);
+      // 임원 명단
+      const toLines = (x) => Array.isArray(x) ? x.join('\n') : (x || '');
+      v('ct-officers-auditors',  toLines(c.officers?.auditors));
+      v('ct-officers-directors', toLines(c.officers?.directors));
       // 문의
       v('ct-contact-phone',       c.contact?.phone);
       v('ct-contact-hours',       c.contact?.hours);
@@ -883,6 +898,10 @@
         render_title: g('ct-visual-render-title'),
         render_desc:  g('ct-visual-render-desc'),
         render_list:  g('ct-visual-render-list')
+      },
+      officers: {
+        auditors:  g('ct-officers-auditors'),
+        directors: g('ct-officers-directors')
       },
       contact: {
         phone: g('ct-contact-phone'), hours: g('ct-contact-hours'),
