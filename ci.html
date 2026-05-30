@@ -51,6 +51,9 @@
   .color-info { margin: 14px 0; font-size: 14px; }
   .back-link { display:inline-flex; align-items:center; gap:6px; font-size:14px; color:#0d2461; text-decoration:none; font-weight:600; margin-bottom:24px; padding:8px 16px; background:#fff; border:1px solid #e0e4eb; border-radius:8px; transition:.15s; }
   .back-link:hover { background:#0d2461; color:#fff; }
+  .dl-grid { display:flex; flex-wrap:wrap; gap:12px; }
+  .dl-btn { display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:#0d2461; text-decoration:none; padding:12px 20px; background:#f5f7fa; border:1.5px solid #d4d8e0; border-radius:10px; transition:.15s; }
+  .dl-btn:hover { background:#0d2461; color:#fff; border-color:#0d2461; transform:translateY(-2px); box-shadow:0 4px 12px rgba(13,36,97,.18); }
 </style>
 </head>
 <body>
@@ -326,6 +329,73 @@
         #4b5563 / RGB(75, 85, 99)<br/>
         <span style="font-size: 12px; color: #999;">본문 / 서브 정보</span></p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. 서체 시스템 -->
+<div class="section">
+  <h2>4. 서체 시스템 (Typography)</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>전용 서체 — Jua (주아)</h3>
+      <div style="font-family:'Jua',sans-serif; font-size:38px; color:#0d2461; margin:10px 0 14px; line-height:1.2;">
+        가리봉2구역<br/>
+        <span style="font-size:22px;">새벽이 밝아오는 우리 동네</span>
+      </div>
+      <p style="font-size:13.5px; color:#4b5563; line-height:1.8;">
+        조합명·심볼 레터마크에 사용하는 <strong style="color:#0d2461;">대표 서체</strong>입니다.
+        둥글고 친근한 인상으로 주민과 함께하는 조합의 따뜻함을 전합니다.
+      </p>
+      <p style="font-size:12px; color:#7a8290; margin-top:10px;">
+        용도: 로고 · 제목 · 강조 문구 &nbsp;|&nbsp; 라이선스: 구글폰트(무료, 상업적 사용 가능)
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>본문 서체 — Noto Sans KR</h3>
+      <div style="font-family:'Noto Sans KR',sans-serif; margin:10px 0 14px; line-height:1.4;">
+        <div style="font-size:24px; font-weight:900; color:#1a1a2e;">재개발정비사업조합</div>
+        <div style="font-size:16px; font-weight:500; color:#4b5563; margin-top:4px;">투명하고 신속한 사업 추진</div>
+        <div style="font-size:13px; font-weight:400; color:#7a8290; margin-top:4px;">서울 구로구 구로동로 17-1, 3층</div>
+      </div>
+      <p style="font-size:13.5px; color:#4b5563; line-height:1.8;">
+        본문·주소·안내 문구에 사용하는 <strong style="color:#0d2461;">기본 서체</strong>입니다.
+        다양한 굵기(400~900)로 정보의 위계를 명확하게 표현합니다.
+      </p>
+      <p style="font-size:12px; color:#7a8290; margin-top:10px;">
+        용도: 본문 · 부제 · 연락처 &nbsp;|&nbsp; 라이선스: 구글폰트(무료, 상업적 사용 가능)
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 5. 다운로드 -->
+<div class="section">
+  <h2>5. 다운로드 (Download)</h2>
+
+  <div class="card" style="margin-bottom:24px;">
+    <h3>🎨 로고 · 심볼 (SVG 벡터)</h3>
+    <p style="font-size:13px; color:#7a8290; margin-bottom:16px;">
+      인쇄·웹 어디서나 깨지지 않는 벡터 파일입니다. 클릭하면 다운로드됩니다.
+    </p>
+    <div class="dl-grid">
+      <a class="dl-btn" href="symbol.svg" download>⊙ 심볼 마크</a>
+      <a class="dl-btn" href="logo-horizontal.svg" download>▭ 수평형 레터마크</a>
+      <a class="dl-btn" href="logo-vertical.svg" download>▯ 수직형 레터마크</a>
+      <a class="dl-btn" href="signature-full.svg" download>✦ 풀 시그니처</a>
+      <a class="dl-btn" href="signature-compact.svg" download>✦ 컴팩트 시그니처</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔤 서체 (Font)</h3>
+    <p style="font-size:13px; color:#7a8290; margin-bottom:16px;">
+      CI에 사용된 무료 서체입니다. 구글폰트에서 내려받아 설치할 수 있습니다.
+    </p>
+    <div class="dl-grid">
+      <a class="dl-btn" href="https://fonts.google.com/specimen/Jua" target="_blank" rel="noopener">⬇ Jua (주아) 내려받기</a>
+      <a class="dl-btn" href="https://fonts.google.com/noto/specimen/Noto+Sans+KR" target="_blank" rel="noopener">⬇ Noto Sans KR 내려받기</a>
     </div>
   </div>
 </div>
