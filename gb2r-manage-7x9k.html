@@ -648,6 +648,10 @@
   const FILE         = 'notices.json';
   const CONTENT_FILE = 'content.json';
   const GH_API = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
+  // 백엔드 Worker 주소 (비밀 아님) — 어떤 기기에서든 비밀번호만으로 로그인
+  const WORKER_URL   = 'https://garibong2-audit.duels.workers.dev';
+  function backendOn() { return !!WORKER_URL; }
+  function sessionPw() { return sessionStorage.getItem('sess_pw') || ''; }
   const DEFAULT_PW       = 'garibong2024!';   // 슈퍼 관리자 기본 비밀번호
   const DEFAULT_STAFF_PW = 'staff2024!';      // 일반 관리자 기본 비밀번호
   // 비밀번호: localStorage에 저장된 값 우선, 없으면 기본값
@@ -716,39 +720,58 @@
     document.getElementById('loginSetup').style.display  = 'none';
     document.getElementById('loginErr').textContent = '';
   };
-  if (!hasToken() && !hasProxy()) showTokenSetup();
+  if (!backendOn() && !hasToken() && !hasProxy()) showTokenSetup();
 
-  // ── 일반 로그인 (비밀번호만) ──────────────────────
-  window.doLogin = () => {
-    const err = document.getElementById('loginErr');
-    if (isLocked()) { err.textContent = lockMsg(); return; }
-    const pw = document.getElementById('loginPw').value;
-    // 역할 판별: 슈퍼 → 일반 순으로 비밀번호 매칭
-    let role = '';
-    if (pw === getAdminPw())      role = 'super';
-    else if (pw === getStaffPw()) role = 'staff';
-    if (!role) {
-      recordFail();
-      addAudit('-', false);
-      const cnt = getAttempts();
-      const rem = MAX_ATTEMPTS - cnt;
-      err.textContent = rem > 0
-        ? `비밀번호가 틀렸습니다. (${rem}회 남음)`
-        : lockMsg();
-      return;
-    }
-    // 프록시가 설정돼 있으면 로컬 토큰이 없어도 로그인 가능
-    if (!getSavedToken() && !hasProxy()) {
-      err.textContent = '먼저 GitHub 토큰 또는 프록시 설정이 필요합니다. (슈퍼 관리자)';
-      showTokenSetup(); return;
-    }
+  // ── 로그인 (비밀번호만) ──────────────────────────
+  function loginOK(role, pw) {
     clearFail();
     addAudit(role, true);
     sessionStorage.setItem('admin_auth', '1');
     sessionStorage.setItem('admin_role', role);
     sessionStorage.setItem('login_time', Date.now());
+    if (pw) sessionStorage.setItem('sess_pw', pw);
     if (getSavedToken()) sessionStorage.setItem('gh_token', atob(getSavedToken()));
     showAdmin();
+  }
+  function loginFail(err) {
+    recordFail();
+    addAudit('-', false);
+    const rem = MAX_ATTEMPTS - getAttempts();
+    err.textContent = rem > 0 ? `비밀번호가 틀렸습니다. (${rem}회 남음)` : lockMsg();
+  }
+  window.doLogin = async () => {
+    const err = document.getElementById('loginErr');
+    if (isLocked()) { err.textContent = lockMsg(); return; }
+    const pw = document.getElementById('loginPw').value;
+
+    // 백엔드(Worker) 비밀번호 인증 — 어떤 기기에서든 비밀번호만으로 로그인
+    if (backendOn()) {
+      err.textContent = '확인 중...';
+      try {
+        const r = await fetch(WORKER_URL + '/api/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        if (r.ok) { const j = await r.json(); err.textContent=''; loginOK(j.role, pw); return; }
+        if (r.status === 401) { loginFail(err); return; }
+        throw new Error('HTTP ' + r.status);
+      } catch(e) {
+        err.textContent = '서버 연결 실패 — 로컬 방식으로 시도합니다...';
+        // 네트워크 실패 시 아래 로컬 검증으로 폴백
+      }
+    }
+
+    // (폴백) 로컬 비밀번호 검증 + 토큰/프록시
+    let role = '';
+    if (pw === getAdminPw())      role = 'super';
+    else if (pw === getStaffPw()) role = 'staff';
+    if (!role) { loginFail(err); return; }
+    if (!getSavedToken() && !hasProxy()) {
+      err.textContent = '먼저 GitHub 토큰 또는 프록시 설정이 필요합니다. (슈퍼 관리자)';
+      showTokenSetup(); return;
+    }
+    err.textContent = '';
+    loginOK(role, pw);
   };
 
   // ── 최초 설정 (프록시 또는 토큰) ─────────────────
@@ -1294,14 +1317,24 @@
     if (st) st.textContent = (hasAuditBackend() ? '✅ 감사 백엔드 연결됨' : '감사: 미설정') + (hasProxy() ? ' · 🔒 토큰 프록시 ON' : '');
   }
 
-  // ── GitHub 호출: 프록시 우선, 없으면 직접 토큰 ────
+  // ── GitHub 호출: 백엔드(비밀번호) > 프록시키 > 직접토큰 ──
   async function ghGet(path) {
+    if (backendOn()) {
+      return fetch(WORKER_URL + '/api/gh?path=' + encodeURIComponent(path), { headers: { 'X-Admin-Pw': sessionPw() } });
+    }
     if (hasProxy()) {
       return fetch(getAuditApi() + '/api/gh?path=' + encodeURIComponent(path), { headers: { 'X-Proxy-Key': getProxyKey() } });
     }
     return fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { headers: ghHeaders() });
   }
   async function ghPut(path, contentB64, message, sha) {
+    if (backendOn()) {
+      return fetch(WORKER_URL + '/api/gh', {
+        method: 'PUT',
+        headers: { 'X-Admin-Pw': sessionPw(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, content: contentB64, message, sha })
+      });
+    }
     if (hasProxy()) {
       return fetch(getAuditApi() + '/api/gh', {
         method: 'PUT',
@@ -1313,9 +1346,9 @@
     if (sha) body.sha = sha;
     return fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
   }
-  // 원격 기록 전송 (있으면)
+  // 원격 기록 전송 (백엔드 우선)
   function remoteAudit(role, ok, device) {
-    const api = getAuditApi();
+    const api = backendOn() ? WORKER_URL : getAuditApi();
     if (!api) return;
     fetch(api + '/api/audit', {
       method: 'POST',
@@ -1370,12 +1403,15 @@
   }
   async function renderAudit() {
     const el = document.getElementById('auditList');
-    // 백엔드 연결 시 중앙 기록 우선
-    if (hasAuditBackend()) {
+    // 백엔드 연결 시 중앙 기록 우선 (비밀번호 인증)
+    const useBackend = backendOn() || hasAuditBackend();
+    if (useBackend) {
       el.textContent = '중앙 기록 불러오는 중...';
       try {
-        const r = await fetch(getAuditApi() + '/api/audit', { headers: { 'Authorization': 'Bearer ' + getAuditSecret() } });
-        if (r.status === 401) { el.innerHTML = '<span style="color:#dc2626;">비밀키가 올바르지 않습니다. (설정 확인)</span>'; return; }
+        const base = backendOn() ? WORKER_URL : getAuditApi();
+        const headers = backendOn() ? { 'X-Admin-Pw': sessionPw() } : { 'Authorization': 'Bearer ' + getAuditSecret() };
+        const r = await fetch(base + '/api/audit', { headers });
+        if (r.status === 401) { el.innerHTML = '<span style="color:#dc2626;">조회 권한이 없습니다. (슈퍼 관리자만 가능)</span>'; return; }
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
         renderAuditTable(data.log || [], true);

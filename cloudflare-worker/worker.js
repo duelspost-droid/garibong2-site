@@ -1,28 +1,25 @@
 /**
- * 가리봉2구역 관리자 백엔드 Worker
+ * 가리봉2구역 관리자 백엔드 Worker (비밀번호 인증 방식)
  *
- * [감사 로그]
- *   POST /api/audit : 로그인 이벤트 기록 (서버가 실제 IP·국가 자동 기록)
- *   GET  /api/audit : 기록 조회 (AUDIT_SECRET 필요)
+ * 인증: 요청 헤더 X-Admin-Pw (또는 /api/login 의 body.password) 를
+ *       Worker Secret(ADMIN_PW / STAFF_PW) 과 비교 → 역할 결정
  *
- * [GitHub 토큰 프록시 — 토큰 숨기기]
- *   GET  /api/gh?path=<file> : 저장소 파일 읽기
- *   PUT  /api/gh             : 저장소 파일 쓰기 {path, content(base64), message, sha?}
- *   (요청 헤더 X-Proxy-Key 가 PROXY_KEY 와 일치해야 함)
+ * 엔드포인트
+ *   POST /api/login : { password } → { ok, role }  (비밀번호 검증)
+ *   GET  /api/gh?path=<file>       : 저장소 파일 읽기
+ *   PUT  /api/gh                    : 저장소 파일 쓰기 {path, content(b64), message, sha?}
+ *   POST /api/audit                 : 로그인 이벤트 기록 (서버가 실제 IP 기록)
+ *   GET  /api/audit                 : 기록 조회 (슈퍼만)
  *
- * 바인딩:
- *   KV namespace : AUDIT
- *   Secret       : AUDIT_SECRET   (감사 조회용)
- *   Secret       : GH_TOKEN       (GitHub PAT — 브라우저에 노출 안 됨)
- *   Secret       : PROXY_KEY      (관리자 앱이 프록시 호출 시 사용)
- *   Var          : GH_REPO        (예: duelspost-droid/garibong2-site)
- *   Var          : ALLOWED_ORIGINS
+ * 바인딩
+ *   KV    : AUDIT
+ *   Secret: GH_TOKEN, ADMIN_PW, STAFF_PW
+ *   Var   : GH_REPO, ALLOWED_ORIGINS
  */
 
 const KV_KEY = 'log';
 const MAX_ENTRIES = 300;
 
-// 프록시로 읽기/쓰기 허용할 경로 (화이트리스트)
 const ALLOW_PATHS = [
   /^notices\.json$/,
   /^content\.json$/,
@@ -30,6 +27,13 @@ const ALLOW_PATHS = [
   /^visual_(map|render)_[A-Za-z0-9_-]+\.(png|jpe?g)$/
 ];
 function pathAllowed(p) { return typeof p === 'string' && ALLOW_PATHS.some(re => re.test(p)); }
+
+// 비밀번호 → 역할
+function roleFor(pw, env) {
+  if (env.ADMIN_PW && pw === env.ADMIN_PW) return 'super';
+  if (env.STAFF_PW && pw === env.STAFF_PW) return 'staff';
+  return null;
+}
 
 export default {
   async fetch(request, env) {
@@ -39,24 +43,62 @@ export default {
 
     const url = new URL(request.url);
 
-    if (url.pathname === '/api/audit') {
-      if (request.method === 'POST') return handlePost(request, env, cors);
-      if (request.method === 'GET')  return handleGet(request, env, cors);
-      return json({ error: 'method not allowed' }, 405, cors);
+    if (url.pathname === '/api/login' && request.method === 'POST') {
+      let body = {}; try { body = await request.json(); } catch (e) {}
+      const role = roleFor(String(body.password || ''), env);
+      if (!role) return json({ ok: false }, 401, cors);
+      return json({ ok: true, role }, 200, cors);
     }
 
-    if (url.pathname === '/api/gh') {
-      return handleGh(request, env, cors, url);
+    if (url.pathname === '/api/gh') return handleGh(request, env, cors, url);
+
+    if (url.pathname === '/api/audit') {
+      if (request.method === 'POST') return auditPost(request, env, cors);
+      if (request.method === 'GET')  return auditGet(request, env, cors);
+      return json({ error: 'method not allowed' }, 405, cors);
     }
 
     return json({ error: 'not found' }, 404, cors);
   }
 };
 
-/* ───────── 감사 로그 ───────── */
-async function handlePost(request, env, cors) {
-  let body = {};
-  try { body = await request.json(); } catch (e) {}
+async function handleGh(request, env, cors, url) {
+  const role = roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (!role) return json({ error: 'unauthorized' }, 401, cors);
+  if (!env.GH_TOKEN || !env.GH_REPO) return json({ error: 'server not configured' }, 500, cors);
+
+  const gh = {
+    'Authorization': `Bearer ${env.GH_TOKEN}`,
+    'Accept': 'application/vnd.github+json',
+    'User-Agent': 'garibong2-admin-worker',
+    'Content-Type': 'application/json'
+  };
+  const api = (p) => `https://api.github.com/repos/${env.GH_REPO}/contents/${p}`;
+
+  if (request.method === 'GET') {
+    const path = url.searchParams.get('path') || '';
+    if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
+    const r = await fetch(api(path), { headers: gh });
+    return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': 'application/json', ...cors } });
+  }
+
+  if (request.method === 'PUT') {
+    let body = {}; try { body = await request.json(); } catch (e) {}
+    const { path, content, message, sha } = body;
+    if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
+    // 일반 관리자(staff)는 공지(notices.json)만 쓰기 가능 — 서버에서 강제
+    if (role === 'staff' && path !== 'notices.json') return json({ error: 'staff cannot edit this file' }, 403, cors);
+    if (typeof content !== 'string') return json({ error: 'content required' }, 400, cors);
+    const payload = { message: message || 'update via admin', content };
+    if (sha) payload.sha = sha;
+    const r = await fetch(api(path), { method: 'PUT', headers: gh, body: JSON.stringify(payload) });
+    return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': 'application/json', ...cors } });
+  }
+  return json({ error: 'method not allowed' }, 405, cors);
+}
+
+async function auditPost(request, env, cors) {
+  let body = {}; try { body = await request.json(); } catch (e) {}
   const entry = {
     ts: Date.now(),
     ip: request.headers.get('CF-Connecting-IP') || '알 수 없음',
@@ -74,61 +116,21 @@ async function handlePost(request, env, cors) {
   return json({ ok: true }, 200, cors);
 }
 
-async function handleGet(request, env, cors) {
-  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-  if (!env.AUDIT_SECRET || token !== env.AUDIT_SECRET) return json({ error: 'unauthorized' }, 401, cors);
+async function auditGet(request, env, cors) {
+  const role = roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
   let log = [];
   try { log = JSON.parse((await env.AUDIT.get(KV_KEY)) || '[]'); } catch (e) {}
   return json({ log }, 200, cors);
 }
 
-/* ───────── GitHub 토큰 프록시 ───────── */
-async function handleGh(request, env, cors, url) {
-  // 프록시 키 검증
-  const key = request.headers.get('X-Proxy-Key') || '';
-  if (!env.PROXY_KEY || key !== env.PROXY_KEY) return json({ error: 'unauthorized' }, 401, cors);
-  if (!env.GH_TOKEN || !env.GH_REPO) return json({ error: 'server not configured' }, 500, cors);
-
-  const ghHeaders = {
-    'Authorization': `Bearer ${env.GH_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
-    'User-Agent': 'garibong2-admin-worker',
-    'Content-Type': 'application/json'
-  };
-  const api = (p) => `https://api.github.com/repos/${env.GH_REPO}/contents/${p}`;
-
-  if (request.method === 'GET') {
-    const path = url.searchParams.get('path') || '';
-    if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
-    const r = await fetch(api(path), { headers: ghHeaders });
-    const data = await r.text();
-    return new Response(data, { status: r.status, headers: { 'Content-Type': 'application/json', ...cors } });
-  }
-
-  if (request.method === 'PUT') {
-    let body = {};
-    try { body = await request.json(); } catch (e) {}
-    const { path, content, message, sha } = body;
-    if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
-    if (typeof content !== 'string') return json({ error: 'content required' }, 400, cors);
-    const payload = { message: message || 'update via admin', content };
-    if (sha) payload.sha = sha;
-    const r = await fetch(api(path), { method: 'PUT', headers: ghHeaders, body: JSON.stringify(payload) });
-    const data = await r.text();
-    return new Response(data, { status: r.status, headers: { 'Content-Type': 'application/json', ...cors } });
-  }
-
-  return json({ error: 'method not allowed' }, 405, cors);
-}
-
-/* ───────── 공통 ───────── */
 function corsHeaders(origin, env) {
   const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   const allow = allowed.includes(origin) ? origin : (allowed[0] || '*');
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Proxy-Key',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Admin-Pw',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
   };
