@@ -523,6 +523,9 @@
       <div class="form-row">
         <div class="field"><label>조회 비밀키 (AUDIT_SECRET)</label><input class="finput" type="password" id="ct-audit-secret" placeholder="Worker에 설정한 비밀키"/></div>
       </div>
+      <div class="form-row">
+        <div class="field"><label>토큰 프록시 키 (PROXY_KEY) <span style="color:#aaa;font-weight:400;">— 토큰 숨기기용</span></label><input class="finput" type="password" id="ct-proxy-key" placeholder="Worker에 설정한 PROXY_KEY (선택)"/></div>
+      </div>
       <button class="btn-setting" onclick="saveAuditBackend()">💾 백엔드 설정 저장</button>
       <span id="auditBackendStatus" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
     </div>
@@ -699,7 +702,7 @@
     document.getElementById('loginSetup').style.display  = 'none';
     document.getElementById('loginErr').textContent = '';
   };
-  if (!hasToken()) showTokenSetup();
+  if (!hasToken() && !hasProxy()) showTokenSetup();
 
   // ── 일반 로그인 (비밀번호만) ──────────────────────
   window.doLogin = () => {
@@ -720,8 +723,9 @@
         : lockMsg();
       return;
     }
-    if (!getSavedToken()) {
-      err.textContent = '먼저 GitHub 토큰 설정이 필요합니다. (슈퍼 관리자)';
+    // 프록시가 설정돼 있으면 로컬 토큰이 없어도 로그인 가능
+    if (!getSavedToken() && !hasProxy()) {
+      err.textContent = '먼저 GitHub 토큰 또는 프록시 설정이 필요합니다. (슈퍼 관리자)';
       showTokenSetup(); return;
     }
     clearFail();
@@ -729,7 +733,7 @@
     sessionStorage.setItem('admin_auth', '1');
     sessionStorage.setItem('admin_role', role);
     sessionStorage.setItem('login_time', Date.now());
-    sessionStorage.setItem('gh_token', atob(getSavedToken()));
+    if (getSavedToken()) sessionStorage.setItem('gh_token', atob(getSavedToken()));
     showAdmin();
   };
 
@@ -825,7 +829,7 @@
 
   async function loadNotices() {
     try {
-      const res  = await fetch(GH_API, { headers: ghHeaders() });
+      const res  = await ghGet(FILE);
       const data = await res.json();
       fileSha  = data.sha;
       notices  = JSON.parse(b64toUtf8(data.content));
@@ -839,11 +843,7 @@
     document.getElementById('savingOverlay').classList.add('show');
     try {
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(notices, null, 2))));
-      const res = await fetch(GH_API, {
-        method: 'PUT',
-        headers: ghHeaders(),
-        body: JSON.stringify({ message: msg, content, sha: fileSha })
-      });
+      const res = await ghPut(FILE, content, msg, fileSha);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       fileSha = data.content.sha;
@@ -955,7 +955,7 @@
   let contentSha = '';
   async function loadContent() {
     try {
-      const res  = await fetch(`https://api.github.com/repos/${REPO}/contents/${CONTENT_FILE}`, { headers: ghHeaders() });
+      const res  = await ghGet(CONTENT_FILE);
       const data = await res.json();
       contentSha = data.sha;
       const c = JSON.parse(b64toUtf8(data.content));
@@ -1072,10 +1072,7 @@
     document.getElementById('savingOverlay').classList.add('show');
     try {
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(c, null, 2))));
-      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${CONTENT_FILE}`, {
-        method: 'PUT', headers: ghHeaders(),
-        body: JSON.stringify({ message: '홈페이지 콘텐츠 수정', content, sha: contentSha })
-      });
+      const res = await ghPut(CONTENT_FILE, content, '홈페이지 콘텐츠 수정', contentSha);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       contentSha = data.content.sha;
@@ -1104,11 +1101,7 @@
       });
       const ext  = (file.type === 'image/jpeg') ? 'jpg' : 'png';
       const fname = `chairman_${Date.now()}.${ext}`;
-      const apiUrl = `https://api.github.com/repos/${REPO}/contents/${fname}`;
-      const res = await fetch(apiUrl, {
-        method: 'PUT', headers: ghHeaders(),
-        body: JSON.stringify({ message: '조합장 사진 업로드', content: b64 })
-      });
+      const res = await ghPut(fname, b64, '조합장 사진 업로드');
       if (!res.ok) throw new Error(await res.text());
       // 미리보기 + 숨김필드 갱신
       document.getElementById('ct-greeting-photo').value = fname;
@@ -1142,11 +1135,7 @@
       });
       const ext   = (file.type === 'image/jpeg') ? 'jpg' : 'png';
       const fname = `visual_${key}_${Date.now()}.${ext}`;
-      const apiUrl = `https://api.github.com/repos/${REPO}/contents/${fname}`;
-      const res = await fetch(apiUrl, {
-        method: 'PUT', headers: ghHeaders(),
-        body: JSON.stringify({ message: `${key === 'map' ? '위치도' : '조감도'} 이미지 업로드`, content: b64 })
-      });
+      const res = await ghPut(fname, b64, `${key === 'map' ? '위치도' : '조감도'} 이미지 업로드`);
       if (!res.ok) throw new Error(await res.text());
       document.getElementById(`ct-visual-${key}`).value = fname;
       document.getElementById(`ct-visual-${key}-preview`).src = `data:${file.type};base64,${b64}`;
@@ -1256,22 +1245,47 @@
   // ── 감사 로그 백엔드(Worker) 설정 ─────────────────
   function getAuditApi()    { return (localStorage.getItem('audit_api') || '').replace(/\/+$/,''); }
   function getAuditSecret() { return localStorage.getItem('audit_secret') || ''; }
+  function getProxyKey()    { return localStorage.getItem('proxy_key') || ''; }
   function hasAuditBackend(){ return !!(getAuditApi() && getAuditSecret()); }
+  function hasProxy()       { return !!(getAuditApi() && getProxyKey()); }
   window.saveAuditBackend = () => {
     if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
     const api = document.getElementById('ct-audit-api').value.trim();
     const sec = document.getElementById('ct-audit-secret').value.trim();
+    const pk  = document.getElementById('ct-proxy-key').value.trim();
     if (api && !/^https:\/\/.+/.test(api)) { showToast('Worker 주소는 https:// 로 시작해야 합니다', true); return; }
     if (api) localStorage.setItem('audit_api', api); else localStorage.removeItem('audit_api');
     if (sec) localStorage.setItem('audit_secret', sec); else localStorage.removeItem('audit_secret');
-    document.getElementById('auditBackendStatus').textContent = hasAuditBackend() ? '✅ 백엔드 연결됨' : '미설정 (이 기기 기록만 사용)';
-    showToast('💾 백엔드 설정이 저장되었습니다');
+    if (pk)  localStorage.setItem('proxy_key', pk);     else localStorage.removeItem('proxy_key');
+    fillAuditBackend();
+    showToast('💾 백엔드 설정이 저장되었습니다' + (hasProxy() ? ' (토큰 프록시 활성화)' : ''));
   };
   function fillAuditBackend() {
     const a = document.getElementById('ct-audit-api'); if (a) a.value = getAuditApi();
     const s = document.getElementById('ct-audit-secret'); if (s) s.value = getAuditSecret();
+    const p = document.getElementById('ct-proxy-key'); if (p) p.value = getProxyKey();
     const st = document.getElementById('auditBackendStatus');
-    if (st) st.textContent = hasAuditBackend() ? '✅ 백엔드 연결됨' : '미설정 (이 기기 기록만 사용)';
+    if (st) st.textContent = (hasAuditBackend() ? '✅ 감사 백엔드 연결됨' : '감사: 미설정') + (hasProxy() ? ' · 🔒 토큰 프록시 ON' : '');
+  }
+
+  // ── GitHub 호출: 프록시 우선, 없으면 직접 토큰 ────
+  async function ghGet(path) {
+    if (hasProxy()) {
+      return fetch(getAuditApi() + '/api/gh?path=' + encodeURIComponent(path), { headers: { 'X-Proxy-Key': getProxyKey() } });
+    }
+    return fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { headers: ghHeaders() });
+  }
+  async function ghPut(path, contentB64, message, sha) {
+    if (hasProxy()) {
+      return fetch(getAuditApi() + '/api/gh', {
+        method: 'PUT',
+        headers: { 'X-Proxy-Key': getProxyKey(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path, content: contentB64, message, sha })
+      });
+    }
+    const body = { message, content: contentB64 };
+    if (sha) body.sha = sha;
+    return fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
   }
   // 원격 기록 전송 (있으면)
   function remoteAudit(role, ok, device) {
