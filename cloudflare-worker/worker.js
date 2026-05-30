@@ -1,23 +1,20 @@
 /**
- * 가리봉2구역 관리자 백엔드 Worker (비밀번호 인증 방식)
+ * 가리봉2구역 관리자 백엔드 Worker (비밀번호 KV 관리)
  *
- * 인증: 요청 헤더 X-Admin-Pw (또는 /api/login 의 body.password) 를
- *       Worker Secret(ADMIN_PW / STAFF_PW) 과 비교 → 역할 결정
+ * 비밀번호는 KV(key='pw')에 저장 → 관리자페이지에서 변경 가능.
+ * KV에 값이 없으면 최초 1회 env.ADMIN_PW / env.STAFF_PW(Secret)로 부트스트랩.
  *
  * 엔드포인트
- *   POST /api/login : { password } → { ok, role }  (비밀번호 검증)
- *   GET  /api/gh?path=<file>       : 저장소 파일 읽기
- *   PUT  /api/gh                    : 저장소 파일 쓰기 {path, content(b64), message, sha?}
- *   POST /api/audit                 : 로그인 이벤트 기록 (서버가 실제 IP 기록)
- *   GET  /api/audit                 : 기록 조회 (슈퍼만)
+ *   POST /api/login    : { password } → { ok, role }
+ *   POST /api/password : { target:'admin'|'staff', newPassword }  (슈퍼만, 헤더 X-Admin-Pw)
+ *   GET  /api/gh?path= : 파일 읽기 | PUT /api/gh : 파일 쓰기
+ *   POST /api/audit    : 로그인 이벤트 기록 | GET /api/audit : 조회(슈퍼)
  *
- * 바인딩
- *   KV    : AUDIT
- *   Secret: GH_TOKEN, ADMIN_PW, STAFF_PW
- *   Var   : GH_REPO, ALLOWED_ORIGINS
+ * 바인딩: KV=AUDIT, Secret=GH_TOKEN, ADMIN_PW, STAFF_PW / Var=GH_REPO, ALLOWED_ORIGINS
  */
 
-const KV_KEY = 'log';
+const KV_LOG = 'log';
+const KV_PW  = 'pw';
 const MAX_ENTRIES = 300;
 
 const ALLOW_PATHS = [
@@ -28,10 +25,20 @@ const ALLOW_PATHS = [
 ];
 function pathAllowed(p) { return typeof p === 'string' && ALLOW_PATHS.some(re => re.test(p)); }
 
-// 비밀번호 → 역할
-function roleFor(pw, env) {
-  if (env.ADMIN_PW && pw === env.ADMIN_PW) return 'super';
-  if (env.STAFF_PW && pw === env.STAFF_PW) return 'staff';
+// 현재 비밀번호 (KV 우선, 없으면 Secret 부트스트랩)
+async function getPasswords(env) {
+  let pw = {};
+  try { pw = JSON.parse((await env.AUDIT.get(KV_PW)) || '{}'); } catch (e) {}
+  return {
+    admin: pw.admin || env.ADMIN_PW || '',
+    staff: pw.staff || env.STAFF_PW || ''
+  };
+}
+async function roleFor(pw, env) {
+  if (!pw) return null;
+  const p = await getPasswords(env);
+  if (p.admin && pw === p.admin) return 'super';
+  if (p.staff && pw === p.staff) return 'staff';
   return null;
 }
 
@@ -45,9 +52,13 @@ export default {
 
     if (url.pathname === '/api/login' && request.method === 'POST') {
       let body = {}; try { body = await request.json(); } catch (e) {}
-      const role = roleFor(String(body.password || ''), env);
+      const role = await roleFor(String(body.password || ''), env);
       if (!role) return json({ ok: false }, 401, cors);
       return json({ ok: true, role }, 200, cors);
+    }
+
+    if (url.pathname === '/api/password' && request.method === 'POST') {
+      return changePassword(request, env, cors);
     }
 
     if (url.pathname === '/api/gh') return handleGh(request, env, cors, url);
@@ -62,8 +73,23 @@ export default {
   }
 };
 
+// 비밀번호 변경 (슈퍼만)
+async function changePassword(request, env, cors) {
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
+  let body = {}; try { body = await request.json(); } catch (e) {}
+  const target = body.target === 'staff' ? 'staff' : (body.target === 'admin' ? 'admin' : null);
+  const np = String(body.newPassword || '');
+  if (!target) return json({ error: 'invalid target' }, 400, cors);
+  if (np.length < 6) return json({ error: 'too short' }, 400, cors);
+  const p = await getPasswords(env);
+  p[target] = np;
+  await env.AUDIT.put(KV_PW, JSON.stringify(p));
+  return json({ ok: true }, 200, cors);
+}
+
 async function handleGh(request, env, cors, url) {
-  const role = roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
   if (!role) return json({ error: 'unauthorized' }, 401, cors);
   if (!env.GH_TOKEN || !env.GH_REPO) return json({ error: 'server not configured' }, 500, cors);
 
@@ -86,7 +112,6 @@ async function handleGh(request, env, cors, url) {
     let body = {}; try { body = await request.json(); } catch (e) {}
     const { path, content, message, sha } = body;
     if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
-    // 일반 관리자(staff)는 공지(notices.json)만 쓰기 가능 — 서버에서 강제
     if (role === 'staff' && path !== 'notices.json') return json({ error: 'staff cannot edit this file' }, 403, cors);
     if (typeof content !== 'string') return json({ error: 'content required' }, 400, cors);
     const payload = { message: message || 'update via admin', content };
@@ -109,18 +134,18 @@ async function auditPost(request, env, cors) {
     device: String(body.device || '').slice(0, 80)
   };
   let log = [];
-  try { log = JSON.parse((await env.AUDIT.get(KV_KEY)) || '[]'); } catch (e) {}
+  try { log = JSON.parse((await env.AUDIT.get(KV_LOG)) || '[]'); } catch (e) {}
   log.unshift(entry);
   log = log.slice(0, MAX_ENTRIES);
-  await env.AUDIT.put(KV_KEY, JSON.stringify(log));
+  await env.AUDIT.put(KV_LOG, JSON.stringify(log));
   return json({ ok: true }, 200, cors);
 }
 
 async function auditGet(request, env, cors) {
-  const role = roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
   if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
   let log = [];
-  try { log = JSON.parse((await env.AUDIT.get(KV_KEY)) || '[]'); } catch (e) {}
+  try { log = JSON.parse((await env.AUDIT.get(KV_LOG)) || '[]'); } catch (e) {}
   return json({ log }, 200, cors);
 }
 

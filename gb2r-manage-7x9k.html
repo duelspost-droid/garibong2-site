@@ -508,20 +508,29 @@
     <div id="tab-setting" style="display:none">
 
     <div class="card">
-      <div class="card-title">🔑 비밀번호 관리</div>
-      <p style="font-size:13.5px; color:#475569; line-height:1.8;">
-        로그인 비밀번호는 보안을 위해 <strong style="color:#0d2461;">서버(Cloudflare Worker)에서 관리</strong>됩니다.
-        브라우저나 코드에 저장되지 않습니다.
+      <div class="card-title">🔑 비밀번호 변경</div>
+      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
+        슈퍼 관리자·일반 관리자 비밀번호를 여기서 바로 변경할 수 있습니다.
+        변경 즉시 <strong>모든 기기</strong>에 적용됩니다.
       </p>
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px 18px; margin-top:14px; font-size:13px; color:#334155; line-height:1.9;">
-        <strong>변경 방법</strong><br>
-        1. <a href="https://dash.cloudflare.com" target="_blank" rel="noopener" style="color:#2563eb;">dash.cloudflare.com</a> 로그인<br>
-        2. Workers &amp; Pages → <strong>garibong2-audit</strong> → Settings → Variables<br>
-        3. <strong>ADMIN_PW</strong>(슈퍼 관리자) 또는 <strong>STAFF_PW</strong>(일반 관리자) 값 수정<br>
-        4. <strong>Deploy</strong> 클릭 → 즉시 적용
+      <div class="form-row">
+        <div class="field" style="max-width:200px">
+          <label>변경할 계정</label>
+          <select id="pwTarget" class="finput">
+            <option value="admin">슈퍼 관리자 (ADMIN_PW)</option>
+            <option value="staff">일반 관리자 (STAFF_PW)</option>
+          </select>
+        </div>
       </div>
-      <p style="font-size:12px; color:#94a3b8; margin-top:12px;">
-        ※ 비밀번호가 곧 슈퍼/일반 관리자 구분입니다. ADMIN_PW로 로그인 = 슈퍼, STAFF_PW로 로그인 = 일반.
+      <div class="form-row">
+        <div class="field"><label>새 비밀번호 (6자 이상)</label><input class="finput" type="password" id="pwNew2" placeholder="새 비밀번호"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>새 비밀번호 확인</label><input class="finput" type="password" id="pwConfirm2" placeholder="다시 입력"/></div>
+      </div>
+      <button class="btn-setting" onclick="changePassword()">🔑 비밀번호 변경</button>
+      <p style="font-size:12px; color:#94a3b8; margin-top:12px; line-height:1.6;">
+        ※ 본인(슈퍼) 비밀번호를 바꾸면 현재 세션에 자동 반영됩니다. 다른 기기는 다음 로그인부터 새 비밀번호를 사용하세요.
       </p>
     </div>
 
@@ -1132,6 +1141,35 @@
   };
 
   // ── 비밀번호 변경 ─────────────────────────────────
+  // ── 비밀번호 변경 (서버 KV에 저장) ────────────────
+  window.changePassword = async () => {
+    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
+    if (!backendOn()) { showToast('백엔드(Worker)가 필요합니다', true); return; }
+    const target = document.getElementById('pwTarget').value;
+    const np     = document.getElementById('pwNew2').value;
+    const cf     = document.getElementById('pwConfirm2').value;
+    if (np.length < 6) { showToast('비밀번호는 6자 이상이어야 합니다', true); return; }
+    if (np !== cf)     { showToast('비밀번호가 일치하지 않습니다', true); return; }
+    document.getElementById('savingOverlay').classList.add('show');
+    try {
+      const r = await fetch(WORKER_URL + '/api/password', {
+        method: 'POST',
+        headers: { 'X-Admin-Pw': sessionPw(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target, newPassword: np })
+      });
+      if (r.status === 401) { showToast('권한이 없습니다. 다시 로그인해 주세요.', true); }
+      else if (!r.ok)       { showToast('변경 실패: ' + (await r.text()), true); }
+      else {
+        // 슈퍼 본인 비번을 바꾼 경우 현재 세션 비번도 갱신 (재로그인 불필요)
+        if (target === 'admin') sessionStorage.setItem('sess_pw', np);
+        document.getElementById('pwNew2').value = '';
+        document.getElementById('pwConfirm2').value = '';
+        showToast('✅ ' + (target === 'admin' ? '슈퍼' : '일반') + ' 관리자 비밀번호가 변경되었습니다');
+      }
+    } catch(e) { showToast('변경 실패: ' + e.message, true); }
+    document.getElementById('savingOverlay').classList.remove('show');
+  };
+
   // ── 브라우저 잔여 데이터 삭제 ─────────────────────
   window.clearBrowserData = () => {
     if (!confirm('브라우저에 남아있는 토큰·키 등 잔여 데이터를 삭제할까요? (로그인은 비밀번호로 계속 가능합니다)')) return;
