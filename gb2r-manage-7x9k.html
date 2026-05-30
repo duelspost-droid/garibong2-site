@@ -512,8 +512,20 @@
 
       <div class="card" id="statsAuditCard">
         <div class="card-title">🔐 관리자 로그인 감사기록</div>
-        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">일시 · 계정 · 결과 · 기기 · IP 주소를 기록합니다. 보안을 위해 임의로 삭제할 수 없습니다.</p>
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">일시 · 계정 · 결과 · 기기 · IP를 영구 기록합니다. 보안을 위해 삭제할 수 없습니다.</p>
+        <div id="auditSummary" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+          <input id="auditSearch" class="finput" style="flex:1; min-width:160px;" placeholder="🔍 IP·계정·날짜·기기 검색" oninput="renderAuditFiltered()"/>
+          <select id="auditFilter" class="finput" style="max-width:140px;" onchange="renderAuditFiltered()">
+            <option value="all">전체</option>
+            <option value="ok">성공만</option>
+            <option value="fail">실패만</option>
+            <option value="super">슈퍼 관리자</option>
+            <option value="staff">일반 관리자</option>
+          </select>
+        </div>
         <div id="auditList" style="font-size:13px;">기록 없음</div>
+        <div id="auditMore" style="text-align:center; margin-top:12px;"></div>
       </div>
     </div><!-- /tab-stats -->
 
@@ -1448,9 +1460,10 @@
       if (idx >= 0) { l2[idx].ip = '조회 실패'; saveAudit(l2); }
     }
   }
+  let auditData = [];      // 전체 기록
+  let auditShown = 100;    // 화면에 표시할 개수 (더보기로 증가)
   async function renderAudit() {
     const el = document.getElementById('auditList');
-    // 백엔드 연결 시 중앙 기록 우선 (비밀번호 인증)
     const useBackend = backendOn() || hasAuditBackend();
     if (useBackend) {
       el.textContent = '중앙 기록 불러오는 중...';
@@ -1458,43 +1471,79 @@
         const base = backendOn() ? WORKER_URL : getAuditApi();
         const headers = backendOn() ? { 'X-Admin-Pw': sessionPw() } : { 'Authorization': 'Bearer ' + getAuditSecret() };
         const r = await fetch(base + '/api/audit', { headers });
-        if (r.status === 401) { el.innerHTML = '<span style="color:#dc2626;">조회 권한이 없습니다. (슈퍼 관리자만 가능)</span>'; return; }
+        if (r.status === 401) { el.innerHTML = '<span style="color:#dc2626;">조회 권한이 없습니다. (슈퍼 관리자만 가능)</span>'; document.getElementById('auditSummary').innerHTML=''; return; }
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        const data = await r.json();
-        renderAuditTable(data.log || [], true);
+        auditData = (await r.json()).log || [];
+        auditShown = 100;
+        renderAuditFiltered();
         return;
       } catch(e) {
-        el.innerHTML = '<span style="color:#dc2626;">중앙 기록 조회 실패: ' + e.message + ' — 이 기기 기록을 표시합니다.</span>';
+        el.innerHTML = '<span style="color:#dc2626;">중앙 기록 조회 실패: ' + e.message + '</span>';
       }
+    } else {
+      auditData = loadAudit(); auditShown = 100; renderAuditFiltered();
     }
-    renderAuditTable(loadAudit(), false);
   }
-  function renderAuditTable(log, remote) {
+
+  function statBox(label, val, color) {
+    return `<div style="background:${color}1a; border:1px solid ${color}40; color:${color}; border-radius:9px; padding:8px 14px; text-align:center; min-width:84px;">
+      <div style="font-size:11px; opacity:.8;">${label}</div><div style="font-size:19px; font-weight:900;">${val}</div></div>`;
+  }
+  window.renderAuditFiltered = () => {
     const el = document.getElementById('auditList');
-    if (!log.length) { el.innerHTML = (remote?'<span style="color:#16a34a;">✅ 중앙 기록 연결됨. </span>':'') + '기록 없음'; return; }
+    const more = document.getElementById('auditMore');
+    const sum = document.getElementById('auditSummary');
     const roleName = { super:'슈퍼 관리자', staff:'일반 관리자', '-':'—' };
-    const head = remote
-      ? '<span style="color:#16a34a; font-size:12px;">☁️ 중앙 기록 (모든 기기 · 서버 실제 IP)</span>'
-      : '<span style="color:#94a3b8; font-size:12px;">💾 이 기기 기록</span>';
-    el.innerHTML = head + `
-      <div style="overflow-x:auto;">
-      <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:520px;">
-        <thead><tr style="text-align:left; color:#64748b; border-bottom:2px solid #e2e8f0;">
+    // 통계 요약 (전체 기준)
+    const total = auditData.length;
+    const fails = auditData.filter(e => !e.ok).length;
+    const supN  = auditData.filter(e => e.role === 'super').length;
+    sum.innerHTML = statBox('전체 기록', total.toLocaleString(), '#0d2461')
+                  + statBox('로그인 성공', (total-fails).toLocaleString(), '#16a34a')
+                  + statBox('로그인 실패', fails.toLocaleString(), '#dc2626')
+                  + statBox('슈퍼 로그인', supN.toLocaleString(), '#2563eb');
+    if (!total) { el.innerHTML = '기록 없음'; more.innerHTML=''; return; }
+
+    // 필터
+    const q = (document.getElementById('auditSearch').value || '').toLowerCase().trim();
+    const f = document.getElementById('auditFilter').value;
+    let rows = auditData.filter(e => {
+      if (f === 'ok' && !e.ok) return false;
+      if (f === 'fail' && e.ok) return false;
+      if (f === 'super' && e.role !== 'super') return false;
+      if (f === 'staff' && e.role !== 'staff') return false;
+      if (q) {
+        const d = new Date(e.ts);
+        const ds = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+        const hay = [e.ip, e.city, e.country, e.device, roleName[e.role]||e.role, ds].join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    const shown = rows.slice(0, auditShown);
+
+    el.innerHTML = `<div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">☁️ 중앙 기록 · 검색결과 ${rows.length.toLocaleString()}건</div>
+      <div style="overflow-x:auto; max-height:520px; overflow-y:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px;">
+        <thead><tr style="text-align:left; color:#64748b; border-bottom:2px solid #e2e8f0; position:sticky; top:0; background:#fff;">
+          <th style="padding:8px 10px;">#</th>
           <th style="padding:8px 10px;">일시</th>
           <th style="padding:8px 10px;">계정</th>
           <th style="padding:8px 10px;">결과</th>
           <th style="padding:8px 10px;">기기</th>
-          <th style="padding:8px 10px;">IP 주소</th>
+          <th style="padding:8px 10px;">IP (위치)</th>
         </tr></thead>
         <tbody>
-        ${log.map(e => {
+        ${shown.map((e, i) => {
           const d = new Date(e.ts);
-          const t = `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          const t = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
           const loc = [e.city, e.country].filter(Boolean).join(' · ');
-          const ipCell = (e.ip||'-') + (loc ? ` <span style="color:#94a3b8; font-family:inherit;">(${loc})</span>` : '');
-          return `<tr style="border-bottom:1px solid #f1f5f9;">
+          const ipCell = (e.ip||'-') + (loc ? ` <span style="color:#94a3b8;">(${loc})</span>` : '');
+          const rowBg = e.ok ? '' : 'background:#fef2f2;';
+          return `<tr style="border-bottom:1px solid #f1f5f9; ${rowBg}">
+            <td style="padding:8px 10px; color:#cbd5e1;">${i+1}</td>
             <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${t}</td>
-            <td style="padding:8px 10px; color:#334155;">${roleName[e.role]||e.role}</td>
+            <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${roleName[e.role]||e.role}</td>
             <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
             <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${e.device||'-'}</td>
             <td style="padding:8px 10px; color:#475569; font-family:monospace;">${ipCell}</td>
@@ -1503,7 +1552,11 @@
         </tbody>
       </table>
       </div>`;
-  }
+    more.innerHTML = (rows.length > auditShown)
+      ? `<button class="btn-small" onclick="auditShowMore()">더 보기 (${(rows.length-auditShown).toLocaleString()}건 더)</button>`
+      : '';
+  };
+  window.auditShowMore = () => { auditShown += 200; renderAuditFiltered(); };
   // ── 토스트 ────────────────────────────────────────
   function showToast(msg, err=false) {
     const t = document.getElementById('toast');

@@ -16,7 +16,8 @@
 const KV_LOG  = 'log';
 const KV_PW   = 'pw';
 const KV_PERM = 'perms';
-const MAX_ENTRIES = 300;
+// 감사기록은 영구 보관 (삭제·덮어쓰기 없음). 안전장치로 매우 큰 상한만 둠.
+const MAX_ENTRIES = 50000;
 
 // 일반 관리자 권한 (세부) — 기본값 모두 허용
 async function getPerms(env) {
