@@ -67,9 +67,11 @@
       if (!sessionStorage.getItem('visit_counted')) {
         sessionStorage.setItem('visit_counted','1');
         var d = new Date();
-        var ymd = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+        var ym  = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0');
+        var ymd = ym + String(d.getDate()).padStart(2,'0');
         hit('total');
         hit('d' + ymd);
+        hit('m' + ym);
       }
     })();
   </script>
