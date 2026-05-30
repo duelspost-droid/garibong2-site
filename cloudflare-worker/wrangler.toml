@@ -1,0 +1,15 @@
+name = "garibong2-audit"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+# KV 네임스페이스 — 아래 id는 `wrangler kv namespace create AUDIT` 실행 후 출력되는 값으로 교체
+kv_namespaces = [
+  { binding = "AUDIT", id = "PASTE_KV_NAMESPACE_ID_HERE" }
+]
+
+[vars]
+# 감사 로그를 보낼 수 있는 사이트 출처 (쉼표로 구분)
+ALLOWED_ORIGINS = "https://garibong2.kro.kr,http://garibong2.kro.kr,https://duelspost-droid.github.io"
+
+# AUDIT_SECRET 은 코드에 두지 말고 아래 명령으로 별도 설정:
+#   wrangler secret put AUDIT_SECRET

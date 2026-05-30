@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://abacus.jasoncameron.dev https://api.ipify.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://abacus.jasoncameron.dev https://api.ipify.org https://*.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
   <meta name="referrer" content="no-referrer"/>
   <meta name="robots" content="noindex, nofollow, noarchive"/>
   <title>공지사항 관리 — 가리봉2구역재개발정비사업조합</title>
@@ -509,6 +509,23 @@
       </p>
       <button class="btn-setting" onclick="openStaffPwModal()">🔑 일반 관리자 비밀번호 설정</button>
     </div>
+
+    <!-- 슈퍼 전용: 감사 로그 백엔드(Cloudflare Worker) -->
+    <div class="card" id="auditBackendBox">
+      <div class="card-title">☁️ 감사 로그 백엔드 (선택)</div>
+      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
+        Cloudflare Worker를 연결하면 <strong>모든 기기의 로그인</strong>을 한곳에 모아
+        <strong>실제 IP·국가</strong>까지 기록·조회할 수 있습니다. (설정 안 하면 이 기기 기록만 사용)
+      </p>
+      <div class="form-row">
+        <div class="field"><label>Worker 주소 (https://....workers.dev)</label><input class="finput" id="ct-audit-api" placeholder="https://garibong2-audit.xxx.workers.dev"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>조회 비밀키 (AUDIT_SECRET)</label><input class="finput" type="password" id="ct-audit-secret" placeholder="Worker에 설정한 비밀키"/></div>
+      </div>
+      <button class="btn-setting" onclick="saveAuditBackend()">💾 백엔드 설정 저장</button>
+      <span id="auditBackendStatus" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
+    </div>
     </div><!-- /tab-setting -->
   </div>
 </div>
@@ -931,6 +948,7 @@
     });
     if (tab === 'content') loadContent();
     if (tab === 'stats')   { loadStats(); renderAudit(); }
+    if (tab === 'setting') fillAuditBackend();
   };
 
   // ── content.json 로드 ─────────────────────────────
@@ -1235,6 +1253,37 @@
     document.getElementById('statsDaily').innerHTML = rows;
   }
 
+  // ── 감사 로그 백엔드(Worker) 설정 ─────────────────
+  function getAuditApi()    { return (localStorage.getItem('audit_api') || '').replace(/\/+$/,''); }
+  function getAuditSecret() { return localStorage.getItem('audit_secret') || ''; }
+  function hasAuditBackend(){ return !!(getAuditApi() && getAuditSecret()); }
+  window.saveAuditBackend = () => {
+    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
+    const api = document.getElementById('ct-audit-api').value.trim();
+    const sec = document.getElementById('ct-audit-secret').value.trim();
+    if (api && !/^https:\/\/.+/.test(api)) { showToast('Worker 주소는 https:// 로 시작해야 합니다', true); return; }
+    if (api) localStorage.setItem('audit_api', api); else localStorage.removeItem('audit_api');
+    if (sec) localStorage.setItem('audit_secret', sec); else localStorage.removeItem('audit_secret');
+    document.getElementById('auditBackendStatus').textContent = hasAuditBackend() ? '✅ 백엔드 연결됨' : '미설정 (이 기기 기록만 사용)';
+    showToast('💾 백엔드 설정이 저장되었습니다');
+  };
+  function fillAuditBackend() {
+    const a = document.getElementById('ct-audit-api'); if (a) a.value = getAuditApi();
+    const s = document.getElementById('ct-audit-secret'); if (s) s.value = getAuditSecret();
+    const st = document.getElementById('auditBackendStatus');
+    if (st) st.textContent = hasAuditBackend() ? '✅ 백엔드 연결됨' : '미설정 (이 기기 기록만 사용)';
+  }
+  // 원격 기록 전송 (있으면)
+  function remoteAudit(role, ok, device) {
+    const api = getAuditApi();
+    if (!api) return;
+    fetch(api + '/api/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, ok, device })
+    }).catch(()=>{});
+  }
+
   // ── 기기(User-Agent) 간단 파싱 ────────────────────
   function parseDevice(ua) {
     ua = ua || navigator.userAgent;
@@ -1260,8 +1309,10 @@
   function loadAudit() { try { return JSON.parse(localStorage.getItem('audit_log') || '[]'); } catch(e) { return []; } }
   function saveAudit(l) { try { localStorage.setItem('audit_log', JSON.stringify(l.slice(0, 100))); } catch(e) {} }
   async function addAudit(role, ok) {
+    const device = parseDevice();
+    remoteAudit(role, ok, device);   // 백엔드가 있으면 서버에 실제 IP로 기록
     const id = Date.now() + '_' + Math.random().toString(36).slice(2,7);
-    const entry = { id, ts: Date.now(), role, ok, device: parseDevice(), ip: '확인 중...' };
+    const entry = { id, ts: Date.now(), role, ok, device, ip: '확인 중...' };
     const log = loadAudit(); log.unshift(entry); saveAudit(log);
     // 공인 IP 비동기 조회 후 해당 항목 갱신
     try {
@@ -1277,12 +1328,32 @@
       if (idx >= 0) { l2[idx].ip = '조회 실패'; saveAudit(l2); }
     }
   }
-  function renderAudit() {
-    const log = loadAudit();
+  async function renderAudit() {
     const el = document.getElementById('auditList');
-    if (!log.length) { el.textContent = '기록 없음'; return; }
+    // 백엔드 연결 시 중앙 기록 우선
+    if (hasAuditBackend()) {
+      el.textContent = '중앙 기록 불러오는 중...';
+      try {
+        const r = await fetch(getAuditApi() + '/api/audit', { headers: { 'Authorization': 'Bearer ' + getAuditSecret() } });
+        if (r.status === 401) { el.innerHTML = '<span style="color:#dc2626;">비밀키가 올바르지 않습니다. (설정 확인)</span>'; return; }
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        renderAuditTable(data.log || [], true);
+        return;
+      } catch(e) {
+        el.innerHTML = '<span style="color:#dc2626;">중앙 기록 조회 실패: ' + e.message + ' — 이 기기 기록을 표시합니다.</span>';
+      }
+    }
+    renderAuditTable(loadAudit(), false);
+  }
+  function renderAuditTable(log, remote) {
+    const el = document.getElementById('auditList');
+    if (!log.length) { el.innerHTML = (remote?'<span style="color:#16a34a;">✅ 중앙 기록 연결됨. </span>':'') + '기록 없음'; return; }
     const roleName = { super:'슈퍼 관리자', staff:'일반 관리자', '-':'—' };
-    el.innerHTML = `
+    const head = remote
+      ? '<span style="color:#16a34a; font-size:12px;">☁️ 중앙 기록 (모든 기기 · 서버 실제 IP)</span>'
+      : '<span style="color:#94a3b8; font-size:12px;">💾 이 기기 기록</span>';
+    el.innerHTML = head + `
       <div style="overflow-x:auto;">
       <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:520px;">
         <thead><tr style="text-align:left; color:#64748b; border-bottom:2px solid #e2e8f0;">
@@ -1296,12 +1367,14 @@
         ${log.map(e => {
           const d = new Date(e.ts);
           const t = `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          const loc = [e.city, e.country].filter(Boolean).join(' · ');
+          const ipCell = (e.ip||'-') + (loc ? ` <span style="color:#94a3b8; font-family:inherit;">(${loc})</span>` : '');
           return `<tr style="border-bottom:1px solid #f1f5f9;">
             <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${t}</td>
             <td style="padding:8px 10px; color:#334155;">${roleName[e.role]||e.role}</td>
             <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
             <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${e.device||'-'}</td>
-            <td style="padding:8px 10px; color:#475569; font-family:monospace;">${e.ip||'-'}</td>
+            <td style="padding:8px 10px; color:#475569; font-family:monospace;">${ipCell}</td>
           </tr>`;
         }).join('')}
         </tbody>
