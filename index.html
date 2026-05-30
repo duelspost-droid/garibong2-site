@@ -11,6 +11,51 @@
 </head>
 <body>
 
+  <!-- ── 인트로 스플래시 ──────────────────────────── -->
+  <div class="intro" id="introSplash">
+    <div class="intro-inner">
+      <svg class="intro-symbol" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <defs><clipPath id="ic"><circle cx="60" cy="60" r="54"/></clipPath></defs>
+        <!-- 지평선 -->
+        <line class="i-horizon" x1="6" y1="80" x2="114" y2="80" stroke="rgba(255,255,255,0.3)" stroke-width="1" clip-path="url(#ic)"/>
+        <!-- 태양 -->
+        <path class="i-sun" d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="#fcd34d" stroke-width="2.4" clip-path="url(#ic)"/>
+        <!-- 광선 -->
+        <g class="i-rays" stroke="#fcd34d" stroke-width="2.2" stroke-linecap="round">
+          <line x1="60" y1="55" x2="60" y2="48"/>
+          <line x1="73" y1="59" x2="77" y2="53"/>
+          <line x1="47" y1="59" x2="43" y2="53"/>
+        </g>
+        <!-- 중앙 타워 -->
+        <g class="i-build i-b1">
+          <rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="#fff" stroke-width="2" clip-path="url(#ic)"/>
+          <polygon points="60,31 68,40 52,40" fill="#fff" clip-path="url(#ic)"/>
+        </g>
+        <!-- 좌우 건물 -->
+        <rect class="i-build i-b2" x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="#fff" stroke-width="1.8" clip-path="url(#ic)"/>
+        <rect class="i-build i-b3" x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="#fff" stroke-width="1.8" clip-path="url(#ic)"/>
+        <!-- 외곽 원 -->
+        <circle class="i-ring" cx="60" cy="60" r="54" stroke="#fff" stroke-width="2" fill="none"/>
+      </svg>
+      <div class="intro-name brand">가리봉2구역</div>
+      <div class="intro-sub">재개발정비사업조합</div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var intro = document.getElementById('introSplash');
+      if (!intro) return;
+      if (sessionStorage.getItem('introSeen')) { intro.parentNode.removeChild(intro); return; }
+      sessionStorage.setItem('introSeen','1');
+      document.documentElement.style.overflow = 'hidden';
+      setTimeout(function(){
+        intro.classList.add('hide');
+        document.documentElement.style.overflow = '';
+        setTimeout(function(){ if (intro.parentNode) intro.parentNode.removeChild(intro); }, 900);
+      }, 3200);
+    })();
+  </script>
+
   <!-- ── 헤더 ─────────────────────────────────────── -->
   <header id="top">
     <div class="container nav-wrap">
