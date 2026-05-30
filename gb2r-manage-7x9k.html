@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://abacus.jasoncameron.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://abacus.jasoncameron.dev https://api.ipify.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
   <meta name="referrer" content="no-referrer"/>
   <meta name="robots" content="noindex, nofollow, noarchive"/>
   <title>공지사항 관리 — 가리봉2구역재개발정비사업조합</title>
@@ -484,7 +484,7 @@
 
       <div class="card">
         <div class="card-title">🔐 관리자 로그인 감사기록</div>
-        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">이 기기(브라우저)에서의 최근 로그인 기록입니다. (최대 100건)</p>
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">일시 · 계정 · 결과 · 기기 · IP 주소를 기록합니다. (이 기기 기준, 최대 100건)</p>
         <div id="auditList" style="font-size:13px;">기록 없음</div>
         <button class="btn-setting" style="margin-top:14px;" onclick="clearAudit()">🗑️ 기록 지우기</button>
       </div>
@@ -1235,32 +1235,77 @@
     document.getElementById('statsDaily').innerHTML = rows;
   }
 
+  // ── 기기(User-Agent) 간단 파싱 ────────────────────
+  function parseDevice(ua) {
+    ua = ua || navigator.userAgent;
+    let os = '기타';
+    if (/Windows NT 10/.test(ua)) os = 'Windows';
+    else if (/Windows/.test(ua)) os = 'Windows';
+    else if (/iPhone|iPad|iPod/.test(ua)) os = 'iOS';
+    else if (/Android/.test(ua)) os = 'Android';
+    else if (/Mac OS X/.test(ua)) os = 'Mac';
+    else if (/Linux/.test(ua)) os = 'Linux';
+    let br = '기타';
+    if (/Edg\//.test(ua)) br = 'Edge';
+    else if (/SamsungBrowser/.test(ua)) br = 'Samsung';
+    else if (/Whale/.test(ua)) br = 'Whale';
+    else if (/Chrome\//.test(ua)) br = 'Chrome';
+    else if (/Firefox\//.test(ua)) br = 'Firefox';
+    else if (/Safari\//.test(ua)) br = 'Safari';
+    const mobile = /Mobile|Android|iPhone/.test(ua) ? '모바일' : 'PC';
+    return `${os} · ${br} (${mobile})`;
+  }
+
   // ── 로그인 감사기록 (이 기기 localStorage) ────────
-  function addAudit(role, ok) {
+  function loadAudit() { try { return JSON.parse(localStorage.getItem('audit_log') || '[]'); } catch(e) { return []; } }
+  function saveAudit(l) { try { localStorage.setItem('audit_log', JSON.stringify(l.slice(0, 100))); } catch(e) {} }
+  async function addAudit(role, ok) {
+    const id = Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    const entry = { id, ts: Date.now(), role, ok, device: parseDevice(), ip: '확인 중...' };
+    const log = loadAudit(); log.unshift(entry); saveAudit(log);
+    // 공인 IP 비동기 조회 후 해당 항목 갱신
     try {
-      const log = JSON.parse(localStorage.getItem('audit_log') || '[]');
-      log.unshift({ ts: Date.now(), role: role, ok: ok });
-      localStorage.setItem('audit_log', JSON.stringify(log.slice(0, 100)));
-    } catch(e) {}
+      const r = await fetch('https://api.ipify.org?format=json');
+      const j = await r.json();
+      const l2 = loadAudit();
+      const idx = l2.findIndex(e => e.id === id);
+      if (idx >= 0) { l2[idx].ip = j.ip || '알 수 없음'; saveAudit(l2); }
+      if (document.getElementById('tab-stats').style.display !== 'none') renderAudit();
+    } catch(e) {
+      const l2 = loadAudit();
+      const idx = l2.findIndex(e => e.id === id);
+      if (idx >= 0) { l2[idx].ip = '조회 실패'; saveAudit(l2); }
+    }
   }
   function renderAudit() {
-    let log = [];
-    try { log = JSON.parse(localStorage.getItem('audit_log') || '[]'); } catch(e) {}
+    const log = loadAudit();
     const el = document.getElementById('auditList');
     if (!log.length) { el.textContent = '기록 없음'; return; }
     const roleName = { super:'슈퍼 관리자', staff:'일반 관리자', '-':'—' };
     el.innerHTML = `
-      <div style="display:grid; grid-template-columns:1fr auto auto; gap:6px 14px; font-size:12.5px;">
-        <div style="font-weight:700; color:#64748b;">일시</div>
-        <div style="font-weight:700; color:#64748b;">계정</div>
-        <div style="font-weight:700; color:#64748b;">결과</div>
+      <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:520px;">
+        <thead><tr style="text-align:left; color:#64748b; border-bottom:2px solid #e2e8f0;">
+          <th style="padding:8px 10px;">일시</th>
+          <th style="padding:8px 10px;">계정</th>
+          <th style="padding:8px 10px;">결과</th>
+          <th style="padding:8px 10px;">기기</th>
+          <th style="padding:8px 10px;">IP 주소</th>
+        </tr></thead>
+        <tbody>
         ${log.map(e => {
           const d = new Date(e.ts);
-          const t = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-          return `<div style="color:#334155;">${t}</div>
-            <div style="color:#334155;">${roleName[e.role]||e.role}</div>
-            <div style="font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</div>`;
+          const t = `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          return `<tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${t}</td>
+            <td style="padding:8px 10px; color:#334155;">${roleName[e.role]||e.role}</td>
+            <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
+            <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${e.device||'-'}</td>
+            <td style="padding:8px 10px; color:#475569; font-family:monospace;">${e.ip||'-'}</td>
+          </tr>`;
         }).join('')}
+        </tbody>
+      </table>
       </div>`;
   }
   window.clearAudit = () => {
