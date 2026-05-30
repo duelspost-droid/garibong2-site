@@ -1460,6 +1460,17 @@
       if (idx >= 0) { l2[idx].ip = '조회 실패'; saveAudit(l2); }
     }
   }
+  // 깨진 문자(U+FFFD)·제어문자 제거 + HTML 이스케이프 (저장형 XSS 방어 겸용)
+  function auditClean(s) {
+    s = String(s == null ? '' : s);
+    let out = '';
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i);
+      if (c === 0xFFFD || c < 0x20 || c === 0x7F) continue;
+      out += s[i];
+    }
+    return out.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])).trim();
+  }
   let auditData = [];      // 전체 기록
   let auditShown = 100;    // 화면에 표시할 개수 (더보기로 증가)
   async function renderAudit() {
@@ -1537,15 +1548,16 @@
         ${shown.map((e, i) => {
           const d = new Date(e.ts);
           const t = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-          const loc = [e.city, e.country].filter(Boolean).join(' · ');
-          const ipCell = (e.ip||'-') + (loc ? ` <span style="color:#94a3b8;">(${loc})</span>` : '');
+          const loc = [auditClean(e.city), auditClean(e.country)].filter(Boolean).join(' · ');
+          const ipCell = (auditClean(e.ip)||'-') + (loc ? ` <span style="color:#94a3b8;">(${loc})</span>` : '');
+          const device = auditClean(e.device) || '-';
           const rowBg = e.ok ? '' : 'background:#fef2f2;';
           return `<tr style="border-bottom:1px solid #f1f5f9; ${rowBg}">
             <td style="padding:8px 10px; color:#cbd5e1;">${i+1}</td>
             <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${t}</td>
-            <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${roleName[e.role]||e.role}</td>
+            <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${auditClean(roleName[e.role]||e.role)}</td>
             <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
-            <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${e.device||'-'}</td>
+            <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${device}</td>
             <td style="padding:8px 10px; color:#475569; font-family:monospace;">${ipCell}</td>
           </tr>`;
         }).join('')}
