@@ -171,7 +171,7 @@
           </ul>
         </div>
         <div class="visual-img-wrap">
-          <img src="map.png" alt="가리봉2구역 사업지 위치도" class="visual-img" onerror="this.parentElement.classList.add('img-missing')" />
+          <img src="map.png" alt="가리봉2구역 사업지 위치도" class="visual-img" id="c-visual-map" onerror="this.parentElement.classList.add('img-missing')" />
           <div class="img-caption">📍 사업지 위치도</div>
         </div>
       </div>
@@ -192,7 +192,7 @@
           </ul>
         </div>
         <div class="visual-img-wrap">
-          <img src="render.png" alt="가리봉2구역 완공 조감도" class="visual-img" onerror="this.parentElement.classList.add('img-missing')" />
+          <img src="render.png" alt="가리봉2구역 완공 조감도" class="visual-img" id="c-visual-render" onerror="this.parentElement.classList.add('img-missing')" />
           <div class="img-caption">🏙️ 완공 후 조감도 (예상)</div>
         </div>
       </div>
@@ -492,6 +492,9 @@
         setHTML('c-greeting-sig1', c.greeting?.position);
         setText('c-greeting-sig2', c.greeting?.chairman ? '조합장 ' + c.greeting.chairman + ' 드림' : null);
         if (c.greeting?.photo) { const ph = document.getElementById('c-greeting-photo'); if (ph) ph.src = c.greeting.photo; }
+        // 위치·조감도 이미지
+        if (c.visual?.map)    { const m = document.getElementById('c-visual-map');    if (m) m.src = c.visual.map; }
+        if (c.visual?.render) { const r = document.getElementById('c-visual-render'); if (r) r.src = c.visual.render; }
         // 문의
         setText('c-contact-phone',   c.contact?.phone);
         setText('c-contact-hours',   c.contact?.hours);

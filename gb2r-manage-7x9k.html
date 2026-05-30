@@ -360,6 +360,40 @@
     </div>
 
     <div class="card">
+      <div class="card-title">🏙️ 위치도 · 완공 조감도</div>
+      <div class="form-row">
+        <div class="field">
+          <label>사업지 위치도</label>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <img id="ct-visual-map-preview" src="map.png" alt="위치도 미리보기"
+                 style="width:120px; height:78px; border-radius:8px; object-fit:cover; border:2px solid #e0e4eb; background:#f5f7fa;"/>
+            <div>
+              <input type="file" id="ct-visual-map-file" accept="image/png,image/jpeg" style="display:none" onchange="uploadVisualImage(event,'map')"/>
+              <button type="button" class="btn-small" onclick="document.getElementById('ct-visual-map-file').click()">🖼️ 위치도 변경</button>
+              <div id="ct-visual-map-status" style="font-size:12px; color:#888; margin-top:6px;">PNG 또는 JPG</div>
+            </div>
+          </div>
+          <input type="hidden" id="ct-visual-map"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>완공 후 조감도</label>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <img id="ct-visual-render-preview" src="render.png" alt="조감도 미리보기"
+                 style="width:120px; height:78px; border-radius:8px; object-fit:cover; border:2px solid #e0e4eb; background:#f5f7fa;"/>
+            <div>
+              <input type="file" id="ct-visual-render-file" accept="image/png,image/jpeg" style="display:none" onchange="uploadVisualImage(event,'render')"/>
+              <button type="button" class="btn-small" onclick="document.getElementById('ct-visual-render-file').click()">🖼️ 조감도 변경</button>
+              <div id="ct-visual-render-status" style="font-size:12px; color:#888; margin-top:6px;">PNG 또는 JPG</div>
+            </div>
+          </div>
+          <input type="hidden" id="ct-visual-render"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">📞 문의 / 연락처</div>
       <div class="form-row">
         <div class="field"><label>대표전화</label><input class="finput" id="ct-contact-phone"/></div>
@@ -778,6 +812,15 @@
       v('ct-greeting-photo', photoVal);
       const prev = document.getElementById('ct-greeting-photo-preview');
       if (prev) prev.src = photoVal + (photoVal.includes('?') ? '' : '?t=' + Date.now());
+      // 위치도 · 조감도
+      const mapVal = c.visual?.map || 'map.png';
+      const renVal = c.visual?.render || 'render.png';
+      v('ct-visual-map', mapVal);
+      v('ct-visual-render', renVal);
+      const mp = document.getElementById('ct-visual-map-preview');
+      if (mp) mp.src = mapVal + (mapVal.includes('?') ? '' : '?t=' + Date.now());
+      const rp = document.getElementById('ct-visual-render-preview');
+      if (rp) rp.src = renVal + (renVal.includes('?') ? '' : '?t=' + Date.now());
       // 문의
       v('ct-contact-phone',       c.contact?.phone);
       v('ct-contact-hours',       c.contact?.hours);
@@ -805,6 +848,10 @@
         p1: g('ct-greeting-p1'), p2: g('ct-greeting-p2'), p3: g('ct-greeting-p3'),
         p4: g('ct-greeting-p4'), p5: g('ct-greeting-p5'),
         photo: g('ct-greeting-photo') || 'chairman.png'
+      },
+      visual: {
+        map: g('ct-visual-map') || 'map.png',
+        render: g('ct-visual-render') || 'render.png'
       },
       contact: {
         phone: g('ct-contact-phone'), hours: g('ct-contact-hours'),
@@ -867,6 +914,42 @@
     } catch(e) {
       statusEl.textContent = 'PNG 또는 JPG · 정사각형 권장';
       showToast('사진 업로드 실패: ' + e.message, true);
+    }
+    document.getElementById('savingOverlay').classList.remove('show');
+    ev.target.value = '';
+  };
+
+  // ── 위치도 / 조감도 업로드 ─────────────────────────
+  window.uploadVisualImage = async (ev, key) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { showToast('이미지는 8MB 이하여야 합니다', true); ev.target.value=''; return; }
+
+    const statusEl = document.getElementById(`ct-visual-${key}-status`);
+    statusEl.textContent = '업로드 중...';
+    document.getElementById('savingOverlay').classList.add('show');
+    try {
+      const b64 = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload  = () => resolve(r.result.split(',')[1]);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      const ext   = (file.type === 'image/jpeg') ? 'jpg' : 'png';
+      const fname = `visual_${key}_${Date.now()}.${ext}`;
+      const apiUrl = `https://api.github.com/repos/${REPO}/contents/${fname}`;
+      const res = await fetch(apiUrl, {
+        method: 'PUT', headers: ghHeaders(),
+        body: JSON.stringify({ message: `${key === 'map' ? '위치도' : '조감도'} 이미지 업로드`, content: b64 })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      document.getElementById(`ct-visual-${key}`).value = fname;
+      document.getElementById(`ct-visual-${key}-preview`).src = `data:${file.type};base64,${b64}`;
+      statusEl.innerHTML = '✅ 업로드 완료 — <strong>저장 버튼</strong>을 눌러 반영하세요';
+      showToast('✅ 이미지가 업로드되었습니다. 저장 버튼을 눌러주세요');
+    } catch(e) {
+      statusEl.textContent = 'PNG 또는 JPG';
+      showToast('이미지 업로드 실패: ' + e.message, true);
     }
     document.getElementById('savingOverlay').classList.remove('show');
     ev.target.value = '';
