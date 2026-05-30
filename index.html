@@ -82,7 +82,7 @@
       <div class="greeting-wrap">
         <div class="greeting-photo">
           <div class="photo-circle">
-            <img src="chairman.png" alt="조합장 사진" class="chairman-img"/>
+            <img src="chairman.png" alt="조합장 사진" class="chairman-img" id="c-greeting-photo"/>
           </div>
           <div class="greeting-name">
             <strong id="c-greeting-chairman">최상길 조합장</strong>
@@ -491,6 +491,7 @@
         setText('c-greeting-p5', c.greeting?.p5);
         setHTML('c-greeting-sig1', c.greeting?.position);
         setText('c-greeting-sig2', c.greeting?.chairman ? '조합장 ' + c.greeting.chairman + ' 드림' : null);
+        if (c.greeting?.photo) { const ph = document.getElementById('c-greeting-photo'); if (ph) ph.src = c.greeting.photo; }
         // 문의
         setText('c-contact-phone',   c.contact?.phone);
         setText('c-contact-hours',   c.contact?.hours);

@@ -86,6 +86,11 @@
     }
     .btn-submit:hover { background: #2563eb; }
     .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+    .btn-small {
+      background: #0d2461; color: #fff; border: none; border-radius: 8px;
+      padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s;
+    }
+    .btn-small:hover { background: #2563eb; }
 
     /* ── 목록 ── */
     .list-head {
@@ -331,6 +336,21 @@
       <div class="form-row">
         <div class="field"><label>조합장 이름</label><input class="finput" id="ct-greeting-chairman"/></div>
         <div class="field"><label>소속</label><input class="finput" id="ct-greeting-position"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>조합장 사진</label>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <img id="ct-greeting-photo-preview" src="chairman.png" alt="조합장 사진 미리보기"
+                 style="width:84px; height:84px; border-radius:50%; object-fit:cover; object-position:65% 15%; border:2px solid #e0e4eb; background:#f5f7fa;"/>
+            <div>
+              <input type="file" id="ct-greeting-photo-file" accept="image/png,image/jpeg" style="display:none" onchange="uploadChairmanPhoto(event)"/>
+              <button type="button" class="btn-small" onclick="document.getElementById('ct-greeting-photo-file').click()">📷 사진 변경</button>
+              <div id="ct-greeting-photo-status" style="font-size:12px; color:#888; margin-top:6px;">PNG 또는 JPG · 정사각형 권장</div>
+            </div>
+          </div>
+          <input type="hidden" id="ct-greeting-photo"/>
+        </div>
       </div>
       <div class="form-row"><div class="field"><label>인사말 1단락</label><input class="finput" id="ct-greeting-p1"/></div></div>
       <div class="form-row"><div class="field"><label>인사말 2단락</label><textarea class="finput ftextarea" id="ct-greeting-p2" style="min-height:80px"></textarea></div></div>
@@ -753,6 +773,11 @@
       v('ct-greeting-p3', c.greeting?.p3);
       v('ct-greeting-p4', c.greeting?.p4);
       v('ct-greeting-p5', c.greeting?.p5);
+      // 조합장 사진
+      const photoVal = c.greeting?.photo || 'chairman.png';
+      v('ct-greeting-photo', photoVal);
+      const prev = document.getElementById('ct-greeting-photo-preview');
+      if (prev) prev.src = photoVal + (photoVal.includes('?') ? '' : '?t=' + Date.now());
       // 문의
       v('ct-contact-phone',       c.contact?.phone);
       v('ct-contact-hours',       c.contact?.hours);
@@ -778,7 +803,8 @@
       greeting: {
         chairman: g('ct-greeting-chairman'), position: g('ct-greeting-position'),
         p1: g('ct-greeting-p1'), p2: g('ct-greeting-p2'), p3: g('ct-greeting-p3'),
-        p4: g('ct-greeting-p4'), p5: g('ct-greeting-p5')
+        p4: g('ct-greeting-p4'), p5: g('ct-greeting-p5'),
+        photo: g('ct-greeting-photo') || 'chairman.png'
       },
       contact: {
         phone: g('ct-contact-phone'), hours: g('ct-contact-hours'),
@@ -806,6 +832,45 @@
     document.getElementById('savingOverlay').classList.remove('show');
   };
   function g(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+  // ── 조합장 사진 업로드 ─────────────────────────────
+  window.uploadChairmanPhoto = async (ev) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('이미지는 5MB 이하여야 합니다', true); ev.target.value=''; return; }
+
+    const statusEl = document.getElementById('ct-greeting-photo-status');
+    statusEl.textContent = '업로드 중...';
+    document.getElementById('savingOverlay').classList.add('show');
+    try {
+      // 파일 → base64
+      const b64 = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload  = () => resolve(r.result.split(',')[1]);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      const ext  = (file.type === 'image/jpeg') ? 'jpg' : 'png';
+      const fname = `chairman_${Date.now()}.${ext}`;
+      const apiUrl = `https://api.github.com/repos/${REPO}/contents/${fname}`;
+      const res = await fetch(apiUrl, {
+        method: 'PUT', headers: ghHeaders(),
+        body: JSON.stringify({ message: '조합장 사진 업로드', content: b64 })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      // 미리보기 + 숨김필드 갱신
+      document.getElementById('ct-greeting-photo').value = fname;
+      const dataUrl = `data:${file.type};base64,${b64}`;
+      document.getElementById('ct-greeting-photo-preview').src = dataUrl;
+      statusEl.innerHTML = '✅ 업로드 완료 — <strong>저장 버튼</strong>을 눌러 반영하세요';
+      showToast('✅ 사진이 업로드되었습니다. 저장 버튼을 눌러주세요');
+    } catch(e) {
+      statusEl.textContent = 'PNG 또는 JPG · 정사각형 권장';
+      showToast('사진 업로드 실패: ' + e.message, true);
+    }
+    document.getElementById('savingOverlay').classList.remove('show');
+    ev.target.value = '';
+  };
 
   // ── 비밀번호 변경 ─────────────────────────────────
   window.openPwModal  = () => {
