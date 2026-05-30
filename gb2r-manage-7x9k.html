@@ -549,8 +549,8 @@
       </div>
 
       <div class="card" id="statsAuditCard">
-        <div class="card-title">🔐 관리자 로그인 감사기록</div>
-        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">일시 · 계정 · 결과 · 기기 · IP를 영구 기록합니다. 보안을 위해 삭제할 수 없습니다.</p>
+        <div class="card-title">🔐 관리자 감사기록</div>
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">로그인뿐 아니라 공지·내용 수정, 사진 업로드, 비밀번호·권한 변경 등 <strong>모든 작업</strong>을 일시·계정·작업·기기·IP와 함께 영구 기록합니다. 보안을 위해 삭제할 수 없습니다.</p>
         <div id="auditSummary" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;"></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
           <input id="auditSearch" class="finput" style="flex:1; min-width:160px;" placeholder="🔍 IP·계정·날짜·기기 검색" oninput="renderAuditFiltered()"/>
@@ -1004,6 +1004,7 @@
     document.getElementById('nSub').value     = '';
     document.getElementById('nContent').value = '';
     renderList();
+    logAction('공지 등록: ' + title);
     showToast('✅ 공지가 등록되었습니다');
     btn.disabled = false; btn.textContent = '등록하기';
   };
@@ -1014,6 +1015,7 @@
     notices.splice(i, 1);
     await saveNotices('공지 삭제: ' + title);
     renderList();
+    logAction('공지 삭제: ' + title);
     showToast('🗑️ 삭제되었습니다');
   };
 
@@ -1038,6 +1040,7 @@
     notices[i].content = content;
     await saveNotices('공지 수정: ' + title);
     closeModal(); renderList();
+    logAction('공지 수정: ' + title);
     showToast('✅ 수정되었습니다');
   };
 
@@ -1187,6 +1190,7 @@
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       contentSha = data.content.sha;
+      logAction('홈페이지 내용 저장');
       showToast('✅ 홈페이지 내용이 저장되었습니다');
     } catch(e) { showToast('저장 실패: ' + e.message, true); }
     document.getElementById('savingOverlay').classList.remove('show');
@@ -1219,6 +1223,7 @@
       const dataUrl = `data:${file.type};base64,${b64}`;
       document.getElementById('ct-greeting-photo-preview').src = dataUrl;
       statusEl.innerHTML = '✅ 업로드 완료 — <strong>저장 버튼</strong>을 눌러 반영하세요';
+      logAction('조합장 사진 업로드');
       showToast('✅ 사진이 업로드되었습니다. 저장 버튼을 눌러주세요');
     } catch(e) {
       statusEl.textContent = 'PNG 또는 JPG · 정사각형 권장';
@@ -1250,6 +1255,7 @@
       if (!res.ok) throw new Error(await res.text());
       document.getElementById(`ct-visual-${key}`).value = fname;
       document.getElementById(`ct-visual-${key}-preview`).src = `data:${file.type};base64,${b64}`;
+      logAction(`${key === 'map' ? '위치도' : '조감도'} 이미지 업로드`);
       statusEl.innerHTML = '✅ 업로드 완료 — <strong>저장 버튼</strong>을 눌러 반영하세요';
       showToast('✅ 이미지가 업로드되었습니다. 저장 버튼을 눌러주세요');
     } catch(e) {
@@ -1297,6 +1303,7 @@
         body: JSON.stringify(perms)
       });
       if (!r.ok) throw new Error(await r.text());
+      logAction('일반 관리자 권한 변경');
       showToast('✅ 일반 관리자 권한이 저장되었습니다');
     } catch(e) { showToast('저장 실패: ' + e.message, true); }
     document.getElementById('savingOverlay').classList.remove('show');
@@ -1325,6 +1332,7 @@
         if (target === 'admin') sessionStorage.setItem('sess_pw', np);
         document.getElementById('pwNew2').value = '';
         document.getElementById('pwConfirm2').value = '';
+        logAction((target === 'admin' ? '슈퍼' : '일반') + ' 관리자 비밀번호 변경');
         showToast('✅ ' + (target === 'admin' ? '슈퍼' : '일반') + ' 관리자 비밀번호가 변경되었습니다');
       }
     } catch(e) { showToast('변경 실패: ' + e.message, true); }
@@ -1444,14 +1452,21 @@
     return fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
   }
   // 원격 기록 전송 (백엔드 우선)
-  function remoteAudit(role, ok, device) {
+  function remoteAudit(role, ok, device, action) {
     const api = backendOn() ? WORKER_URL : getAuditApi();
     if (!api) return;
     fetch(api + '/api/audit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role, ok, device })
+      body: JSON.stringify({ role, ok, device, action })
     }).catch(()=>{});
+  }
+  // 관리 작업 기록 (성공한 행위)
+  function logAction(action) {
+    remoteAudit(getRole() || '-', true, parseDevice(), action);
+    if (document.getElementById('tab-stats') && document.getElementById('tab-stats').style.display !== 'none') {
+      setTimeout(renderAudit, 800);
+    }
   }
 
   // ── 기기(User-Agent) 간단 파싱 ────────────────────
@@ -1480,9 +1495,10 @@
   function saveAudit(l) { try { localStorage.setItem('audit_log', JSON.stringify(l.slice(0, 100))); } catch(e) {} }
   async function addAudit(role, ok) {
     const device = parseDevice();
-    remoteAudit(role, ok, device);   // 백엔드가 있으면 서버에 실제 IP로 기록
+    const action = ok ? '로그인' : '로그인 시도';
+    remoteAudit(role, ok, device, action);   // 백엔드가 있으면 서버에 실제 IP로 기록
     const id = Date.now() + '_' + Math.random().toString(36).slice(2,7);
-    const entry = { id, ts: Date.now(), role, ok, device, ip: '확인 중...' };
+    const entry = { id, ts: Date.now(), role, ok, action, device, ip: '확인 중...' };
     const log = loadAudit(); log.unshift(entry); saveAudit(log);
     // 공인 IP 비동기 조회 후 해당 항목 갱신
     try {
@@ -1555,10 +1571,11 @@
     const total = auditData.length;
     const fails = auditData.filter(e => !e.ok).length;
     const supN  = auditData.filter(e => e.role === 'super').length;
+    const loginFails = auditData.filter(e => !e.ok).length;
     sum.innerHTML = statBox('전체 기록', total.toLocaleString(), '#0d2461')
-                  + statBox('로그인 성공', (total-fails).toLocaleString(), '#16a34a')
-                  + statBox('로그인 실패', fails.toLocaleString(), '#dc2626')
-                  + statBox('슈퍼 로그인', supN.toLocaleString(), '#2563eb');
+                  + statBox('정상 작업', (total-fails).toLocaleString(), '#16a34a')
+                  + statBox('로그인 실패', loginFails.toLocaleString(), '#dc2626')
+                  + statBox('슈퍼 작업', supN.toLocaleString(), '#2563eb');
     if (!total) { el.innerHTML = '기록 없음'; more.innerHTML=''; return; }
 
     // 필터
@@ -1572,7 +1589,7 @@
       if (q) {
         const d = new Date(e.ts);
         const ds = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-        const hay = [e.ip, e.city, e.country, e.device, roleName[e.role]||e.role, ds].join(' ').toLowerCase();
+        const hay = [e.ip, e.city, e.country, e.device, e.action, roleName[e.role]||e.role, ds].join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -1581,11 +1598,12 @@
 
     el.innerHTML = `<div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">☁️ 중앙 기록 · 검색결과 ${rows.length.toLocaleString()}건</div>
       <div style="overflow-x:auto; max-height:520px; overflow-y:auto;">
-      <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px;">
+      <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:660px;">
         <thead><tr style="text-align:left; color:#64748b; border-bottom:2px solid #e2e8f0; position:sticky; top:0; background:#fff;">
           <th style="padding:8px 10px;">#</th>
           <th style="padding:8px 10px;">일시</th>
           <th style="padding:8px 10px;">계정</th>
+          <th style="padding:8px 10px;">작업</th>
           <th style="padding:8px 10px;">결과</th>
           <th style="padding:8px 10px;">기기</th>
           <th style="padding:8px 10px;">접속 위치 / IP</th>
@@ -1603,11 +1621,13 @@
             : '<span style="font-size:11px; color:#cbd5e1;">위치 미확인</span>';
           const ipLine = `<span title="${ipFull}" style="font-size:11px; color:#94a3b8; font-family:monospace;">${shortIp(ipFull)}</span>`;
           const device = auditClean(e.device) || '-';
+          const action = auditClean(e.action) || '로그인';
           const rowBg = e.ok ? '' : 'background:#fef2f2;';
           return `<tr style="border-bottom:1px solid #f1f5f9; ${rowBg}">
             <td style="padding:8px 10px; color:#cbd5e1;">${i+1}</td>
             <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${t}</td>
             <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${auditClean(roleName[e.role]||e.role)}</td>
+            <td style="padding:8px 10px; color:#0d2461; font-weight:600;">${action}</td>
             <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
             <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${device}</td>
             <td style="padding:8px 10px;"><div>${locPill}</div><div style="margin-top:3px;">${ipLine}</div></td>
