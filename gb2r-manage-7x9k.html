@@ -247,6 +247,7 @@
   <div class="admin-header">
     <div class="admin-header-left">
       <h1>⚙️ 가리봉2구역 관리자</h1>
+      <span id="roleBadge" style="margin-left:10px; font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; vertical-align:middle;"></span>
     </div>
     <div class="head-right">
       <a href="index.html" target="_blank">← 홈페이지</a>
@@ -256,9 +257,9 @@
 
   <!-- 탭 메뉴 -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('notice')">📋 공지사항</button>
-    <button class="tab-btn" onclick="switchTab('content')">✏️ 홈페이지 내용</button>
-    <button class="tab-btn" onclick="switchTab('setting')">⚙️ 설정</button>
+    <button class="tab-btn active" id="tabbtn-notice"  onclick="switchTab('notice')">📋 공지사항</button>
+    <button class="tab-btn" id="tabbtn-content" onclick="switchTab('content')">✏️ 홈페이지 내용</button>
+    <button class="tab-btn" id="tabbtn-setting" onclick="switchTab('setting')">⚙️ 설정</button>
   </div>
 
   <div class="admin-body">
@@ -464,9 +465,19 @@
     <div class="card">
       <div class="card-title">⚙️ 관리자 설정</div>
       <div style="display:flex; gap:12px; flex-wrap:wrap;">
-        <button class="btn-setting" onclick="openPwModal()">🔑 비밀번호 변경</button>
+        <button class="btn-setting" onclick="openPwModal()">🔑 내 비밀번호 변경</button>
         <button class="btn-setting btn-danger" onclick="resetToken()">🔄 GitHub 토큰 재설정</button>
       </div>
+    </div>
+
+    <!-- 슈퍼 관리자 전용: 일반 관리자 계정 관리 -->
+    <div class="card" id="staffPwBox">
+      <div class="card-title">👥 일반 관리자 계정</div>
+      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
+        일반 관리자는 <strong>공지사항 관리만</strong> 가능하며, 홈페이지 내용·설정·토큰에는 접근할 수 없습니다.
+        아래에서 일반 관리자 로그인 비밀번호를 설정하세요.
+      </p>
+      <button class="btn-setting" onclick="openStaffPwModal()">🔑 일반 관리자 비밀번호 설정</button>
     </div>
     </div><!-- /tab-setting -->
   </div>
@@ -540,6 +551,30 @@
   </div>
 </div>
 
+<!-- 일반 관리자 비밀번호 설정 모달 (슈퍼 전용) -->
+<div class="modal-bg" id="staffPwModal">
+  <div class="modal">
+    <h3>👥 일반 관리자 비밀번호 설정</h3>
+    <div class="form-row">
+      <div class="field">
+        <label>새 일반 관리자 비밀번호</label>
+        <input class="finput" type="password" id="staffPwNew" placeholder="새 비밀번호 (6자 이상)"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>비밀번호 확인</label>
+        <input class="finput" type="password" id="staffPwConfirm" placeholder="다시 입력"/>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;margin-top:4px;">일반 관리자에게 이 비밀번호를 전달하세요. (현재 기본값: staff2024!)</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeStaffPwModal()">취소</button>
+      <button class="btn-save"   onclick="changeStaffPw()">설정하기</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="saving-overlay" id="savingOverlay">⏳ 저장 중...</div>
 
@@ -549,9 +584,14 @@
   const FILE         = 'notices.json';
   const CONTENT_FILE = 'content.json';
   const GH_API = `https://api.github.com/repos/${REPO}/contents/${FILE}`;
-  const DEFAULT_PW = 'garibong2024!';
+  const DEFAULT_PW       = 'garibong2024!';   // 슈퍼 관리자 기본 비밀번호
+  const DEFAULT_STAFF_PW = 'staff2024!';      // 일반 관리자 기본 비밀번호
   // 비밀번호: localStorage에 저장된 값 우선, 없으면 기본값
   function getAdminPw() { return localStorage.getItem('admin_pw') || DEFAULT_PW; }
+  function getStaffPw() { return localStorage.getItem('staff_pw') || DEFAULT_STAFF_PW; }
+  // 현재 로그인 역할
+  function getRole() { return sessionStorage.getItem('admin_role') || ''; }
+  function isSuper()  { return getRole() === 'super'; }
   // ───────────────────────────────────────────────────
 
   const badgeLabel = { new:'NEW', notice:'공지', guide:'안내' };
@@ -619,7 +659,11 @@
     const err = document.getElementById('loginErr');
     if (isLocked()) { err.textContent = lockMsg(); return; }
     const pw = document.getElementById('loginPw').value;
-    if (pw !== getAdminPw()) {
+    // 역할 판별: 슈퍼 → 일반 순으로 비밀번호 매칭
+    let role = '';
+    if (pw === getAdminPw())      role = 'super';
+    else if (pw === getStaffPw()) role = 'staff';
+    if (!role) {
       recordFail();
       const cnt = getAttempts();
       const rem = MAX_ATTEMPTS - cnt;
@@ -629,11 +673,12 @@
       return;
     }
     if (!getSavedToken()) {
-      err.textContent = '먼저 GitHub 토큰 설정이 필요합니다.';
+      err.textContent = '먼저 GitHub 토큰 설정이 필요합니다. (슈퍼 관리자)';
       showTokenSetup(); return;
     }
     clearFail();
     sessionStorage.setItem('admin_auth', '1');
+    sessionStorage.setItem('admin_role', role);
     sessionStorage.setItem('login_time', Date.now());
     sessionStorage.setItem('gh_token', atob(getSavedToken()));
     showAdmin();
@@ -647,29 +692,52 @@
     const token = document.getElementById('setupToken').value.trim();
     if (pw !== getAdminPw()) {
       recordFail();
-      err.textContent = '비밀번호가 틀렸습니다.'; return;
+      err.textContent = '슈퍼 관리자 비밀번호가 아닙니다. (토큰 설정은 슈퍼 관리자만 가능)'; return;
     }
     if (!token) { err.textContent = 'GitHub 토큰을 입력해주세요.'; return; }
     clearFail();
     localStorage.setItem('gh_token_enc', btoa(token));
     sessionStorage.setItem('admin_auth', '1');
+    sessionStorage.setItem('admin_role', 'super');
     sessionStorage.setItem('login_time', Date.now());
     sessionStorage.setItem('gh_token', token);
     showAdmin();
   };
 
   window.doLogout = () => {
-    // 보안 강화: 로그아웃 시 세션 + 저장된 토큰 완전 삭제
+    // 세션만 종료 (토큰은 기기에 유지 → 일반 관리자도 재로그인 가능)
+    // 토큰까지 완전 삭제하려면 설정 → 'GitHub 토큰 재설정' 사용
     sessionStorage.clear();
-    localStorage.removeItem('gh_token_enc');
     location.reload();
   };
 
   function showAdmin() {
     document.getElementById('loginWrap').style.display = 'none';
     document.getElementById('adminWrap').style.display = 'block';
+    applyRole();
     loadNotices();
     startSessionTimer();
+  }
+
+  // ── 역할별 권한 적용 ──────────────────────────────
+  function applyRole() {
+    const sup = isSuper();
+    const badge = document.getElementById('roleBadge');
+    if (badge) {
+      badge.textContent = sup ? '슈퍼 관리자' : '일반 관리자';
+      badge.style.background = sup ? '#0d2461' : '#e2e8f0';
+      badge.style.color      = sup ? '#fff'    : '#475569';
+    }
+    // 일반 관리자: 홈페이지 내용·설정 탭 숨김 (공지사항만)
+    const cBtn = document.getElementById('tabbtn-content');
+    const sBtn = document.getElementById('tabbtn-setting');
+    if (cBtn) cBtn.style.display = sup ? '' : 'none';
+    if (sBtn) sBtn.style.display = sup ? '' : 'none';
+    // 슈퍼 전용 설정(일반 관리자 비번 관리) 노출
+    const staffMgmt = document.getElementById('staffPwBox');
+    if (staffMgmt) staffMgmt.style.display = sup ? '' : 'none';
+    // 일반 관리자가 혹시 다른 탭에 있으면 공지로 복귀
+    if (!sup) switchTab('notice');
   }
 
   if (isLoggedIn()) showAdmin();
@@ -817,6 +885,8 @@
 
   // ── 탭 전환 ──────────────────────────────────────
   window.switchTab = (tab) => {
+    // 일반 관리자는 공지사항만 접근 가능
+    if (!isSuper() && tab !== 'notice') { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
     ['notice','content','setting'].forEach(t => {
       document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
     });
@@ -898,6 +968,7 @@
 
   // ── content.json 저장 ─────────────────────────────
   window.saveContent = async () => {
+    if (!isSuper()) { showToast('홈페이지 내용 수정은 슈퍼 관리자만 가능합니다', true); return; }
     const c = {
       hero: {
         tag: g('ct-hero-tag'), title1: g('ct-hero-title1'), title2: g('ct-hero-title2'),
@@ -1052,6 +1123,26 @@
     localStorage.setItem('admin_pw', nw);
     closePwModal();
     showToast('✅ 비밀번호가 변경되었습니다');
+  };
+
+  // ── 일반 관리자 비밀번호 설정 (슈퍼 전용) ─────────
+  window.openStaffPwModal  = () => {
+    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
+    document.getElementById('staffPwNew').value = '';
+    document.getElementById('staffPwConfirm').value = '';
+    document.getElementById('staffPwModal').classList.add('open');
+  };
+  window.closeStaffPwModal = () => document.getElementById('staffPwModal').classList.remove('open');
+  window.changeStaffPw     = () => {
+    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
+    const nw      = document.getElementById('staffPwNew').value;
+    const confirm = document.getElementById('staffPwConfirm').value;
+    if (nw.length < 6) { showToast('비밀번호는 6자 이상이어야 합니다', true); return; }
+    if (nw !== confirm){ showToast('비밀번호가 일치하지 않습니다', true); return; }
+    if (nw === getAdminPw()) { showToast('슈퍼 관리자 비밀번호와 다르게 설정하세요', true); return; }
+    localStorage.setItem('staff_pw', nw);
+    closeStaffPwModal();
+    showToast('✅ 일반 관리자 비밀번호가 설정되었습니다');
   };
 
   // ── GitHub 토큰 재설정 ────────────────────────────
