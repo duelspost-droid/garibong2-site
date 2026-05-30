@@ -217,17 +217,31 @@
       </p>
     </div>
 
-    <!-- 최초 설정 (토큰 입력) -->
+    <!-- 최초 설정 (토큰 또는 프록시) -->
     <div id="loginSetup" style="display:none">
       <div class="input-group">
-        <label>관리자 비밀번호</label>
+        <label>관리자 비밀번호 (슈퍼)</label>
         <input type="password" id="setupPw" placeholder="비밀번호 입력"/>
       </div>
+
+      <p style="font-size:12px;color:#0d2461;font-weight:700;margin:6px 0 4px;">방법 A · 토큰 프록시 (권장 · 토큰을 브라우저에 저장 안 함)</p>
       <div class="input-group">
-        <label>GitHub 토큰 (최초 1회만 입력)</label>
-        <input type="password" id="setupToken" placeholder="gho_... 또는 ghp_..."/>
-        <p class="input-hint">이 브라우저에 안전하게 저장됩니다. 이후엔 비밀번호만 입력하면 됩니다.</p>
+        <label>Worker 주소</label>
+        <input type="text" id="setupApi" placeholder="https://....workers.dev"/>
       </div>
+      <div class="input-group">
+        <label>프록시 키 (PROXY_KEY)</label>
+        <input type="password" id="setupProxy" placeholder="gb2-proxy-..."/>
+        <p class="input-hint">프록시로 설정하면 GitHub 토큰이 브라우저에 저장되지 않습니다.</p>
+      </div>
+
+      <p style="font-size:12px;color:#64748b;font-weight:700;margin:14px 0 4px;">방법 B · GitHub 토큰 직접 저장</p>
+      <div class="input-group">
+        <label>GitHub 토큰 (선택)</label>
+        <input type="password" id="setupToken" placeholder="github_pat_... 또는 ghp_..."/>
+        <p class="input-hint">A 또는 B 중 하나만 입력하면 됩니다.</p>
+      </div>
+
       <button class="btn-login" onclick="doSetup()">설정 완료 및 로그인</button>
       <p style="font-size:11px;color:#94a3b8;margin-top:12px;cursor:pointer;" onclick="showNormalLogin()">
         ← 일반 로그인으로 돌아가기
@@ -737,24 +751,36 @@
     showAdmin();
   };
 
-  // ── 최초 설정 (비밀번호 + 토큰) ──────────────────
+  // ── 최초 설정 (프록시 또는 토큰) ─────────────────
   window.doSetup = () => {
     const err   = document.getElementById('loginErr');
     if (isLocked()) { err.textContent = lockMsg(); return; }
     const pw    = document.getElementById('setupPw').value;
     const token = document.getElementById('setupToken').value.trim();
+    const api   = document.getElementById('setupApi').value.trim();
+    const pkey  = document.getElementById('setupProxy').value.trim();
     if (pw !== getAdminPw()) {
       recordFail();
-      err.textContent = '슈퍼 관리자 비밀번호가 아닙니다. (토큰 설정은 슈퍼 관리자만 가능)'; return;
+      err.textContent = '슈퍼 관리자 비밀번호가 아닙니다. (설정은 슈퍼 관리자만 가능)'; return;
     }
-    if (!token) { err.textContent = 'GitHub 토큰을 입력해주세요.'; return; }
+    // 방법 A: 프록시
+    if (pkey) {
+      const url = api || getAuditApi();
+      if (!/^https:\/\/.+/.test(url)) { err.textContent = 'Worker 주소를 입력해주세요 (https://...).'; return; }
+      localStorage.setItem('audit_api', url.replace(/\/+$/,''));
+      localStorage.setItem('proxy_key', pkey);
+    } else if (token) {
+      // 방법 B: 토큰 직접 저장
+      localStorage.setItem('gh_token_enc', btoa(token));
+    } else {
+      err.textContent = '프록시 키(방법 A) 또는 GitHub 토큰(방법 B) 중 하나를 입력해주세요.'; return;
+    }
     clearFail();
     addAudit('super', true);
-    localStorage.setItem('gh_token_enc', btoa(token));
     sessionStorage.setItem('admin_auth', '1');
     sessionStorage.setItem('admin_role', 'super');
     sessionStorage.setItem('login_time', Date.now());
-    sessionStorage.setItem('gh_token', token);
+    if (getSavedToken()) sessionStorage.setItem('gh_token', atob(getSavedToken()));
     showAdmin();
   };
 
