@@ -187,6 +187,7 @@ async function auditPost(request, env, cors) {
     role: String(body.role || '-').slice(0, 16),
     ok: !!body.ok,
     action: String(body.action || '로그인').slice(0, 40),
+    detail: String(body.detail || '').slice(0, 800),
     device: String(body.device || '').slice(0, 80)
   };
   let log = [];
