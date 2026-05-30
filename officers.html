@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>임원 소개 — 가리봉2구역재개발정비사업조합</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .off-hero {
+      background: linear-gradient(135deg, #0d2461 0%, #1e3a8a 100%);
+      color: #fff; padding: clamp(60px,10vw,110px) 0 clamp(40px,7vw,70px);
+      text-align: center;
+    }
+    .off-hero .sec-tag { color: #93c5fd; }
+    .off-hero h1 { font-size: clamp(28px,5vw,44px); font-weight: 900; margin: 10px 0 14px; letter-spacing: -0.5px; }
+    .off-hero p { color: rgba(255,255,255,0.8); font-size: clamp(14px,2vw,16px); line-height: 1.7; }
+
+    .off-section { padding: clamp(44px,7vw,80px) 0; }
+    .off-section.alt { background: #f5f7fa; }
+    .off-section h2 {
+      font-size: clamp(22px,3.5vw,30px); font-weight: 800; color: #0d2461;
+      text-align: center; margin-bottom: 8px; letter-spacing: -0.4px;
+    }
+    .off-section .sub { text-align: center; color: #7a8290; font-size: 14px; margin-bottom: 40px; }
+
+    /* 조합장 */
+    .chair-wrap {
+      display: flex; align-items: center; gap: clamp(28px,5vw,60px);
+      max-width: 920px; margin: 0 auto; flex-wrap: wrap; justify-content: center;
+    }
+    .chair-photo {
+      width: clamp(180px,26vw,250px); height: clamp(180px,26vw,250px);
+      border-radius: 50%; object-fit: cover; object-position: 65% 15%;
+      border: 6px solid #fff; box-shadow: 0 12px 36px rgba(13,36,97,.22); flex-shrink: 0;
+      background: #e8eaf0;
+    }
+    .chair-info { flex: 1; min-width: 280px; }
+    .chair-info .role { color: #2563eb; font-weight: 700; font-size: 15px; letter-spacing: 1px; }
+    .chair-info .name { font-size: clamp(28px,4vw,38px); font-weight: 900; color: #0d2461; margin: 4px 0 18px; }
+    .chair-info .name small { font-size: 0.5em; font-weight: 500; color: #6b7280; margin-left: 8px; }
+    .chair-info .quote {
+      font-size: clamp(14px,2vw,15.5px); line-height: 1.9; color: #4b5563;
+      border-left: 3px solid #0d2461; padding-left: 18px;
+    }
+    .chair-info .more {
+      display: inline-block; margin-top: 18px; color: #0d2461; font-weight: 600;
+      font-size: 14px; text-decoration: none;
+    }
+    .chair-info .more:hover { text-decoration: underline; }
+
+    /* 임원 그리드 */
+    .off-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+      gap: 22px; max-width: 940px; margin: 0 auto;
+    }
+    .off-card {
+      background: #fff; border: 1px solid #e7eaf1; border-radius: 14px;
+      padding: 30px 20px; text-align: center; transition: .18s;
+    }
+    .off-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(13,36,97,.12); border-color: #c9d4ec; }
+    .off-avatar {
+      width: 76px; height: 76px; margin: 0 auto 16px; border-radius: 50%;
+      background: linear-gradient(135deg,#0d2461,#2563eb); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Jua', sans-serif; font-size: 30px;
+    }
+    .off-card .o-role { font-size: 13px; color: #2563eb; font-weight: 600; }
+    .off-card .o-name { font-size: 20px; font-weight: 800; color: #1a1a2e; margin-top: 3px; letter-spacing: 1px; }
+
+    .off-note { text-align: center; color: #9aa3b5; font-size: 12.5px; margin-top: 34px; }
+
+    .back-home {
+      display: inline-flex; align-items: center; gap: 6px; margin: 30px auto 0;
+      color: #0d2461; font-weight: 600; font-size: 14px; text-decoration: none;
+      padding: 10px 20px; border: 1px solid #d4d8e0; border-radius: 8px;
+    }
+    .back-home:hover { background: #0d2461; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- 헤더 -->
+  <header id="top">
+    <div class="container nav-wrap">
+      <a href="index.html" class="logo">
+        <img src="symbol.svg" alt="심볼" class="logo-symbol"/>
+        <div>
+          <div class="logo-name">가리봉2구역</div>
+          <div class="logo-sub">재개발정비사업조합</div>
+        </div>
+      </a>
+      <nav class="gnav">
+        <a href="index.html#about">조합소개</a>
+        <a href="officers.html">임원소개</a>
+        <a href="index.html#visual">위치·조감도</a>
+        <a href="index.html#notice">공지사항</a>
+        <a href="ci.html">CI 소개</a>
+        <a href="index.html#contact" class="nav-cta">문의하기</a>
+      </nav>
+      <button class="hamburger" onclick="toggleMenu()" aria-label="메뉴">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-nav" id="mobileNav">
+      <a href="index.html#about">조합소개</a>
+      <a href="officers.html">임원소개</a>
+      <a href="index.html#notice">공지사항</a>
+      <a href="ci.html">CI 소개</a>
+      <a href="index.html#contact">문의하기</a>
+    </div>
+  </header>
+
+  <!-- 히어로 -->
+  <section class="off-hero">
+    <div class="container">
+      <span class="sec-tag">ORGANIZATION</span>
+      <h1>임원 소개</h1>
+      <p>조합원 여러분의 신뢰 속에 가리봉2구역의 미래를 함께 만들어 갑니다.</p>
+    </div>
+  </section>
+
+  <!-- 조합장 -->
+  <section class="off-section">
+    <div class="container">
+      <h2>조합장</h2>
+      <p class="sub">CHAIRMAN</p>
+      <div class="chair-wrap">
+        <img src="chairman.png" alt="조합장 사진" class="chair-photo" id="o-chair-photo"/>
+        <div class="chair-info">
+          <div class="role">조합장</div>
+          <div class="name" id="o-chair-name">최상길</div>
+          <div class="quote" id="o-chair-quote">존경하는 조합원 여러분, 안녕하십니까. 오랜 세월을 함께한 이웃들이 더 나은 환경에서 계속 함께 살아갈 수 있도록, 투명한 정보 공개와 공정한 사업 추진으로 여러분이 신뢰할 수 있는 조합을 만들어 나가겠습니다.</div>
+          <a href="index.html#greeting" class="more">조합장 인사말 전문 보기 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 감사 -->
+  <section class="off-section alt">
+    <div class="container">
+      <h2>감사</h2>
+      <p class="sub">AUDITOR</p>
+      <div class="off-grid" id="o-auditors"></div>
+    </div>
+  </section>
+
+  <!-- 이사 -->
+  <section class="off-section">
+    <div class="container">
+      <h2>이사</h2>
+      <p class="sub">DIRECTORS</p>
+      <div class="off-grid" id="o-directors"></div>
+      <p class="off-note">※ 임원 개인 연락처는 개인정보 보호를 위해 공개하지 않습니다. 조합 사무실로 문의해 주세요.</p>
+      <div style="text-align:center;">
+        <a href="index.html" class="back-home">← 홈으로 돌아가기</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 푸터 -->
+  <footer class="footer">
+    <div class="footer-bottom">
+      <div class="container">© 2025 가리봉2구역재개발정비사업조합. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMenu(){ document.getElementById('mobileNav').classList.toggle('open'); }
+
+    // 임원 명단 (성함은 공개, 연락처 비공개)
+    const auditors = [
+      { role:'감사', name:'신수호' }
+    ];
+    const directors = [
+      { role:'이사', name:'김명식' },
+      { role:'이사', name:'서훈' },
+      { role:'이사', name:'설희경' },
+      { role:'이사', name:'김충식' },
+      { role:'이사', name:'박은경' },
+      { role:'이사', name:'한영택' }
+    ];
+    function card(p){
+      const initial = p.name.charAt(0);
+      return `<div class="off-card">
+        <div class="off-avatar">${initial}</div>
+        <div class="o-role">${p.role}</div>
+        <div class="o-name">${p.name}</div>
+      </div>`;
+    }
+    document.getElementById('o-auditors').innerHTML  = auditors.map(card).join('');
+    document.getElementById('o-directors').innerHTML = directors.map(card).join('');
+
+    // content.json에서 조합장 정보 동기화
+    fetch('./content.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(c => {
+        if (c.greeting?.chairman) document.getElementById('o-chair-name').textContent = c.greeting.chairman;
+        if (c.greeting?.photo)    document.getElementById('o-chair-photo').src = c.greeting.photo;
+        if (c.greeting?.p1 || c.greeting?.p4) {
+          document.getElementById('o-chair-quote').textContent =
+            (c.greeting.p1 || '') + ' ' + (c.greeting.p4 || '');
+        }
+      })
+      .catch(()=>{});
+  </script>
+
+</body>
+</html>
