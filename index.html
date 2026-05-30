@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://abacus.jasoncameron.dev; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <title>가리봉2구역재개발정비사업조합</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,6 +55,22 @@
         document.documentElement.style.overflow = '';
         setTimeout(function(){ if (intro.parentNode) intro.parentNode.removeChild(intro); }, 900);
       }, 3200);
+    })();
+  </script>
+
+  <!-- 방문 카운트 (세션당 1회) -->
+  <script>
+    (function(){
+      var NS = 'garibong2-9x7k2p';
+      var base = 'https://abacus.jasoncameron.dev/hit/' + NS + '/';
+      function hit(key){ fetch(base + key).catch(function(){}); }
+      if (!sessionStorage.getItem('visit_counted')) {
+        sessionStorage.setItem('visit_counted','1');
+        var d = new Date();
+        var ymd = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+        hit('total');
+        hit('d' + ymd);
+      }
     })();
   </script>
 

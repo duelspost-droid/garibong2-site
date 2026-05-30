@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com https://abacus.jasoncameron.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
   <meta name="referrer" content="no-referrer"/>
   <meta name="robots" content="noindex, nofollow, noarchive"/>
   <title>공지사항 관리 — 가리봉2구역재개발정비사업조합</title>
@@ -259,6 +259,7 @@
   <div class="tab-bar">
     <button class="tab-btn active" id="tabbtn-notice"  onclick="switchTab('notice')">📋 공지사항</button>
     <button class="tab-btn" id="tabbtn-content" onclick="switchTab('content')">✏️ 홈페이지 내용</button>
+    <button class="tab-btn" id="tabbtn-stats"   onclick="switchTab('stats')">📊 통계·기록</button>
     <button class="tab-btn" id="tabbtn-setting" onclick="switchTab('setting')">⚙️ 설정</button>
   </div>
 
@@ -459,6 +460,35 @@
       <button class="btn-submit" onclick="saveContent()">💾 전체 저장하기</button>
     </div>
     </div><!-- /tab-content -->
+
+    <!-- ══ 통계·기록 탭 ══ -->
+    <div id="tab-stats" style="display:none">
+      <div class="card">
+        <div class="card-title">📊 홈페이지 방문 통계</div>
+        <div id="statsSummary" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:18px;">
+          <div style="flex:1; min-width:140px; background:#0d2461; color:#fff; border-radius:12px; padding:20px; text-align:center;">
+            <div style="font-size:13px; opacity:.8;">누적 방문</div>
+            <div id="statTotal" style="font-size:32px; font-weight:900; margin-top:4px;">—</div>
+          </div>
+          <div style="flex:1; min-width:140px; background:#eff6ff; color:#0d2461; border-radius:12px; padding:20px; text-align:center; border:1px solid #dbeafe;">
+            <div style="font-size:13px; opacity:.7;">오늘 방문</div>
+            <div id="statToday" style="font-size:32px; font-weight:900; margin-top:4px;">—</div>
+          </div>
+        </div>
+        <h4 style="font-size:14px; color:#334155; margin:8px 0 10px;">최근 7일</h4>
+        <div id="statsDaily" style="font-size:13px; color:#475569;">불러오는 중...</div>
+        <p style="font-size:11.5px; color:#94a3b8; margin-top:14px; line-height:1.6;">
+          ※ 방문 수는 세션 기준 집계입니다. <strong>방문자 개인(누구인지)은 개인정보 보호상 수집하지 않습니다.</strong>
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔐 관리자 로그인 감사기록</div>
+        <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">이 기기(브라우저)에서의 최근 로그인 기록입니다. (최대 100건)</p>
+        <div id="auditList" style="font-size:13px;">기록 없음</div>
+        <button class="btn-setting" style="margin-top:14px;" onclick="clearAudit()">🗑️ 기록 지우기</button>
+      </div>
+    </div><!-- /tab-stats -->
 
     <!-- ══ 설정 탭 ══ -->
     <div id="tab-setting" style="display:none">
@@ -665,6 +695,7 @@
     else if (pw === getStaffPw()) role = 'staff';
     if (!role) {
       recordFail();
+      addAudit('-', false);
       const cnt = getAttempts();
       const rem = MAX_ATTEMPTS - cnt;
       err.textContent = rem > 0
@@ -677,6 +708,7 @@
       showTokenSetup(); return;
     }
     clearFail();
+    addAudit(role, true);
     sessionStorage.setItem('admin_auth', '1');
     sessionStorage.setItem('admin_role', role);
     sessionStorage.setItem('login_time', Date.now());
@@ -696,6 +728,7 @@
     }
     if (!token) { err.textContent = 'GitHub 토큰을 입력해주세요.'; return; }
     clearFail();
+    addAudit('super', true);
     localStorage.setItem('gh_token_enc', btoa(token));
     sessionStorage.setItem('admin_auth', '1');
     sessionStorage.setItem('admin_role', 'super');
@@ -731,8 +764,10 @@
     // 일반 관리자: 홈페이지 내용·설정 탭 숨김 (공지사항만)
     const cBtn = document.getElementById('tabbtn-content');
     const sBtn = document.getElementById('tabbtn-setting');
+    const stBtn = document.getElementById('tabbtn-stats');
     if (cBtn) cBtn.style.display = sup ? '' : 'none';
     if (sBtn) sBtn.style.display = sup ? '' : 'none';
+    if (stBtn) stBtn.style.display = sup ? '' : 'none';
     // 슈퍼 전용 설정(일반 관리자 비번 관리) 노출
     const staffMgmt = document.getElementById('staffPwBox');
     if (staffMgmt) staffMgmt.style.display = sup ? '' : 'none';
@@ -887,13 +922,15 @@
   window.switchTab = (tab) => {
     // 일반 관리자는 공지사항만 접근 가능
     if (!isSuper() && tab !== 'notice') { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
-    ['notice','content','setting'].forEach(t => {
+    const tabs = ['notice','content','stats','setting'];
+    tabs.forEach(t => {
       document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
     });
     document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-      btn.classList.toggle('active', ['notice','content','setting'][i] === tab);
+      btn.classList.toggle('active', tabs[i] === tab);
     });
     if (tab === 'content') loadContent();
+    if (tab === 'stats')   { loadStats(); renderAudit(); }
   };
 
   // ── content.json 로드 ─────────────────────────────
@@ -1152,6 +1189,85 @@
     sessionStorage.clear();
     showToast('🔄 토큰이 삭제되었습니다. 다시 로그인해주세요');
     setTimeout(() => location.reload(), 1500);
+  };
+
+  // ── 방문 통계 ─────────────────────────────────────
+  const STATS_NS = 'garibong2-9x7k2p';
+  async function counterGet(key) {
+    try {
+      const r = await fetch(`https://abacus.jasoncameron.dev/get/${STATS_NS}/${key}`);
+      if (!r.ok) return 0;
+      const j = await r.json();
+      return j.value || 0;
+    } catch(e) { return 0; }
+  }
+  function ymd(d) { return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'); }
+  async function loadStats() {
+    const today = new Date();
+    document.getElementById('statTotal').textContent = '…';
+    document.getElementById('statToday').textContent = '…';
+    document.getElementById('statsDaily').textContent = '불러오는 중...';
+    const total = await counterGet('total');
+    const todayCnt = await counterGet('d' + ymd(today));
+    document.getElementById('statTotal').textContent = total.toLocaleString();
+    document.getElementById('statToday').textContent = todayCnt.toLocaleString();
+    // 최근 7일
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      days.push(d);
+    }
+    const counts = await Promise.all(days.map(d => counterGet('d' + ymd(d))));
+    const max = Math.max(1, ...counts);
+    const weekday = ['일','월','화','수','목','금','토'];
+    const rows = days.map((d, i) => {
+      const c = counts[i];
+      const pct = Math.round(c / max * 100);
+      const label = `${d.getMonth()+1}.${d.getDate()}(${weekday[d.getDay()]})`;
+      return `<div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+        <span style="width:70px; color:#64748b;">${label}</span>
+        <span style="flex:1; background:#eef2f7; border-radius:6px; height:18px; overflow:hidden;">
+          <span style="display:block; height:100%; width:${pct}%; background:#2563eb;"></span>
+        </span>
+        <span style="width:46px; text-align:right; font-weight:700; color:#0d2461;">${c}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('statsDaily').innerHTML = rows;
+  }
+
+  // ── 로그인 감사기록 (이 기기 localStorage) ────────
+  function addAudit(role, ok) {
+    try {
+      const log = JSON.parse(localStorage.getItem('audit_log') || '[]');
+      log.unshift({ ts: Date.now(), role: role, ok: ok });
+      localStorage.setItem('audit_log', JSON.stringify(log.slice(0, 100)));
+    } catch(e) {}
+  }
+  function renderAudit() {
+    let log = [];
+    try { log = JSON.parse(localStorage.getItem('audit_log') || '[]'); } catch(e) {}
+    const el = document.getElementById('auditList');
+    if (!log.length) { el.textContent = '기록 없음'; return; }
+    const roleName = { super:'슈퍼 관리자', staff:'일반 관리자', '-':'—' };
+    el.innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr auto auto; gap:6px 14px; font-size:12.5px;">
+        <div style="font-weight:700; color:#64748b;">일시</div>
+        <div style="font-weight:700; color:#64748b;">계정</div>
+        <div style="font-weight:700; color:#64748b;">결과</div>
+        ${log.map(e => {
+          const d = new Date(e.ts);
+          const t = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+          return `<div style="color:#334155;">${t}</div>
+            <div style="color:#334155;">${roleName[e.role]||e.role}</div>
+            <div style="font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</div>`;
+        }).join('')}
+      </div>`;
+  }
+  window.clearAudit = () => {
+    if (!confirm('이 기기의 로그인 기록을 모두 지울까요?')) return;
+    localStorage.removeItem('audit_log');
+    renderAudit();
+    showToast('🗑️ 감사기록을 지웠습니다');
   };
 
   // ── 토스트 ────────────────────────────────────────
