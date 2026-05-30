@@ -13,9 +13,18 @@
  * 바인딩: KV=AUDIT, Secret=GH_TOKEN, ADMIN_PW, STAFF_PW / Var=GH_REPO, ALLOWED_ORIGINS
  */
 
-const KV_LOG = 'log';
-const KV_PW  = 'pw';
+const KV_LOG  = 'log';
+const KV_PW   = 'pw';
+const KV_PERM = 'perms';
 const MAX_ENTRIES = 300;
+
+// 일반 관리자 기본 권한
+const DEFAULT_PERMS = { notices: true, content: true };
+async function getPerms(env) {
+  let p = {};
+  try { p = JSON.parse((await env.AUDIT.get(KV_PERM)) || '{}'); } catch (e) {}
+  return { notices: p.notices !== false, content: p.content !== false };
+}
 
 const ALLOW_PATHS = [
   /^notices\.json$/,
@@ -54,11 +63,18 @@ export default {
       let body = {}; try { body = await request.json(); } catch (e) {}
       const role = await roleFor(String(body.password || ''), env);
       if (!role) return json({ ok: false }, 401, cors);
-      return json({ ok: true, role }, 200, cors);
+      const perms = await getPerms(env);
+      return json({ ok: true, role, perms }, 200, cors);
     }
 
     if (url.pathname === '/api/password' && request.method === 'POST') {
       return changePassword(request, env, cors);
+    }
+
+    if (url.pathname === '/api/perms') {
+      if (request.method === 'GET')  return permsGet(request, env, cors);
+      if (request.method === 'POST') return permsSet(request, env, cors);
+      return json({ error: 'method not allowed' }, 405, cors);
     }
 
     if (url.pathname === '/api/gh') return handleGh(request, env, cors, url);
@@ -88,6 +104,21 @@ async function changePassword(request, env, cors) {
   return json({ ok: true }, 200, cors);
 }
 
+// 일반 관리자 권한 조회/설정 (슈퍼만)
+async function permsGet(request, env, cors) {
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
+  return json({ perms: await getPerms(env) }, 200, cors);
+}
+async function permsSet(request, env, cors) {
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (role !== 'super') return json({ error: 'unauthorized' }, 401, cors);
+  let body = {}; try { body = await request.json(); } catch (e) {}
+  const perms = { notices: !!body.notices, content: !!body.content };
+  await env.AUDIT.put(KV_PERM, JSON.stringify(perms));
+  return json({ ok: true, perms }, 200, cors);
+}
+
 async function handleGh(request, env, cors, url) {
   const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
   if (!role) return json({ error: 'unauthorized' }, 401, cors);
@@ -112,7 +143,13 @@ async function handleGh(request, env, cors, url) {
     let body = {}; try { body = await request.json(); } catch (e) {}
     const { path, content, message, sha } = body;
     if (!pathAllowed(path)) return json({ error: 'path not allowed' }, 403, cors);
-    // 슈퍼·일반 관리자 모두 공지·홈페이지 내용·이미지 수정 가능 (비밀번호 변경은 별도 엔드포인트로 슈퍼 전용)
+    // 일반 관리자: 슈퍼가 설정한 권한에 따라 허용
+    if (role === 'staff') {
+      const perms = await getPerms(env);
+      const isNotices = (path === 'notices.json');
+      if (isNotices && !perms.notices)  return json({ error: 'no permission (notices)' }, 403, cors);
+      if (!isNotices && !perms.content) return json({ error: 'no permission (content)' }, 403, cors);
+    }
     if (typeof content !== 'string') return json({ error: 'content required' }, 400, cors);
     const payload = { message: message || 'update via admin', content };
     if (sha) payload.sha = sha;

@@ -534,6 +534,22 @@
       </p>
     </div>
 
+    <div class="card">
+      <div class="card-title">👥 일반 관리자 권한</div>
+      <p style="font-size:13px; color:#64748b; line-height:1.7; margin-bottom:14px;">
+        일반 관리자가 수정할 수 있는 항목을 선택하세요. 변경 즉시 적용됩니다.
+        (통계·설정·비밀번호 관리는 항상 슈퍼 관리자 전용입니다.)
+      </p>
+      <label style="display:flex; align-items:center; gap:10px; font-size:14px; color:#334155; margin:10px 0; cursor:pointer;">
+        <input type="checkbox" id="perm-notices" style="width:18px; height:18px;"/> 📋 공지사항 작성·수정
+      </label>
+      <label style="display:flex; align-items:center; gap:10px; font-size:14px; color:#334155; margin:10px 0; cursor:pointer;">
+        <input type="checkbox" id="perm-content" style="width:18px; height:18px;"/> ✏️ 홈페이지 내용 수정 (글·이미지)
+      </label>
+      <button class="btn-setting" style="margin-top:10px;" onclick="savePerms()">💾 권한 저장</button>
+      <span id="permStatus" style="font-size:12px; color:#64748b; margin-left:10px;"></span>
+    </div>
+
     </div><!-- /tab-setting -->
   </div>
 </div>
@@ -597,6 +613,10 @@
   // 현재 로그인 역할
   function getRole() { return sessionStorage.getItem('admin_role') || ''; }
   function isSuper()  { return getRole() === 'super'; }
+  function getStaffPerms() {
+    try { const p = JSON.parse(sessionStorage.getItem('staff_perms') || '{}'); return { notices: p.notices !== false, content: p.content !== false }; }
+    catch(e) { return { notices: true, content: true }; }
+  }
   // ───────────────────────────────────────────────────
 
   const badgeLabel = { new:'NEW', notice:'공지', guide:'안내' };
@@ -689,7 +709,7 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ password: pw })
         });
-        if (r.ok) { const j = await r.json(); err.textContent=''; loginOK(j.role, pw); return; }
+        if (r.ok) { const j = await r.json(); err.textContent=''; if (j.perms) sessionStorage.setItem('staff_perms', JSON.stringify(j.perms)); loginOK(j.role, pw); return; }
         if (r.status === 401) { loginFail(err); return; }
         throw new Error('HTTP ' + r.status);
       } catch(e) {
@@ -769,15 +789,18 @@
       badge.style.color      = sup ? '#fff'    : '#475569';
     }
     // 일반 관리자: 홈페이지 내용·설정 탭 숨김 (공지사항만)
+    const nBtn = document.getElementById('tabbtn-notice');
     const cBtn = document.getElementById('tabbtn-content');
     const sBtn = document.getElementById('tabbtn-setting');
     const stBtn = document.getElementById('tabbtn-stats');
-    // 홈페이지 내용: 일반 관리자도 가능 / 통계·설정: 슈퍼 전용
-    if (cBtn) cBtn.style.display = '';
+    const perms = getStaffPerms();
+    // 일반 관리자: 슈퍼가 부여한 권한대로 탭 노출 / 통계·설정은 슈퍼 전용
+    if (nBtn) nBtn.style.display = (sup || perms.notices) ? '' : 'none';
+    if (cBtn) cBtn.style.display = (sup || perms.content) ? '' : 'none';
     if (sBtn) sBtn.style.display = sup ? '' : 'none';
     if (stBtn) stBtn.style.display = sup ? '' : 'none';
-    // 일반 관리자가 혹시 다른 탭에 있으면 공지로 복귀
-    if (!sup) switchTab('notice');
+    // 일반 관리자는 허용된 첫 탭으로 이동
+    if (!sup) switchTab(perms.notices ? 'notice' : (perms.content ? 'content' : 'notice'));
   }
 
   if (isLoggedIn()) showAdmin();
@@ -921,8 +944,13 @@
 
   // ── 탭 전환 ──────────────────────────────────────
   window.switchTab = (tab) => {
-    // 일반 관리자: 공지사항·홈페이지 내용 가능 / 통계·설정은 슈퍼 전용
-    if (!isSuper() && (tab === 'stats' || tab === 'setting')) { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
+    // 일반 관리자: 통계·설정은 슈퍼 전용, 내용 탭은 권한 필요
+    if (!isSuper()) {
+      if (tab === 'stats' || tab === 'setting') { showToast('접근 권한이 없습니다 (슈퍼 관리자 전용)', true); return; }
+      const perms = getStaffPerms();
+      if (tab === 'content' && !perms.content) { showToast('홈페이지 내용 수정 권한이 없습니다', true); return; }
+      if (tab === 'notice'  && !perms.notices) { showToast('공지사항 관리 권한이 없습니다', true); return; }
+    }
     const tabs = ['notice','content','stats','setting'];
     tabs.forEach(t => {
       document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
@@ -932,6 +960,7 @@
     });
     if (tab === 'content') loadContent();
     if (tab === 'stats')   { loadStats(); renderAudit(); }
+    if (tab === 'setting') loadPerms();
   };
 
   // ── content.json 로드 ─────────────────────────────
@@ -1132,6 +1161,38 @@
   };
 
   // ── 비밀번호 변경 ─────────────────────────────────
+  // ── 일반 관리자 권한 관리 (슈퍼 전용) ─────────────
+  async function loadPerms() {
+    if (!isSuper() || !backendOn()) return;
+    const st = document.getElementById('permStatus');
+    try {
+      const r = await fetch(WORKER_URL + '/api/perms', { headers: { 'X-Admin-Pw': sessionPw() } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      document.getElementById('perm-notices').checked = j.perms.notices !== false;
+      document.getElementById('perm-content').checked = j.perms.content !== false;
+      if (st) st.textContent = '';
+    } catch(e) { if (st) st.textContent = '권한 불러오기 실패'; }
+  }
+  window.savePerms = async () => {
+    if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
+    const perms = {
+      notices: document.getElementById('perm-notices').checked,
+      content: document.getElementById('perm-content').checked
+    };
+    document.getElementById('savingOverlay').classList.add('show');
+    try {
+      const r = await fetch(WORKER_URL + '/api/perms', {
+        method: 'POST',
+        headers: { 'X-Admin-Pw': sessionPw(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(perms)
+      });
+      if (!r.ok) throw new Error(await r.text());
+      showToast('✅ 일반 관리자 권한이 저장되었습니다');
+    } catch(e) { showToast('저장 실패: ' + e.message, true); }
+    document.getElementById('savingOverlay').classList.remove('show');
+  };
+
   // ── 비밀번호 변경 (서버 KV에 저장) ────────────────
   window.changePassword = async () => {
     if (!isSuper()) { showToast('슈퍼 관리자만 가능합니다', true); return; }
