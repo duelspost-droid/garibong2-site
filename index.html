@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <title>가리봉2구역재개발정비사업조합</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -316,7 +318,11 @@
   <script>
     const badgeLabel = { new:'NEW', notice:'공지', guide:'안내' };
     const badgeColors = { new:'background:#fef3c7;color:#d97706', notice:'background:#eff6ff;color:#2563eb', guide:'background:#f0fdf4;color:#16a34a' };
+    // XSS 방어: HTML 특수문자 escape
+    function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    let noticeData = [];
 
+    function openNoticeByIndex(i){ const n = noticeData[i]; if (n) openNotice(n); }
     function openNotice(n) {
       const modal = document.getElementById('noticeModal');
       document.getElementById('modalBadge').textContent    = badgeLabel[n.badge]||n.badge;
@@ -338,15 +344,16 @@
       .then(r => r.json())
       .then(data => {
         if (!data || !data.length) return;
+        noticeData = data;
         const list = document.getElementById('noticeList');
         list.innerHTML = data.map((n,i) => `
-          <a href="#" class="notice-row" onclick="event.preventDefault();openNotice(${JSON.stringify(n).replace(/"/g,'&quot;')})">
-            <span class="nbadge${n.badge==='new'?' new':''}">${badgeLabel[n.badge]||n.badge}</span>
+          <a href="#" class="notice-row" onclick="event.preventDefault();openNoticeByIndex(${i})">
+            <span class="nbadge${n.badge==='new'?' new':''}">${esc(badgeLabel[n.badge]||n.badge)}</span>
             <div class="notice-body">
-              <h4>${n.title}</h4>
-              ${n.sub ? `<p>${n.sub}</p>` : ''}
+              <h4>${esc(n.title)}</h4>
+              ${n.sub ? `<p>${esc(n.sub)}</p>` : ''}
             </div>
-            <span class="notice-date">${n.date||''}</span>
+            <span class="notice-date">${esc(n.date||'')}</span>
             <span class="notice-arr">›</span>
           </a>`).join('');
       })
@@ -508,7 +515,11 @@
 
   <!-- 콘텐츠 동적 로드 -->
   <script>
-    function setHTML(id, val) { const el = document.getElementById(id); if (el && val) el.innerHTML = val.replace(/\n/g,'<br>'); }
+    function setHTML(id, val) {
+      const el = document.getElementById(id); if (!el || !val) return;
+      const safe = String(val).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      el.innerHTML = safe.replace(/\n/g,'<br>');
+    }
     function setText(id, val) { const el = document.getElementById(id); if (el && val !== undefined) el.textContent = val; }
     function setList(id, val) {
       const el = document.getElementById(id);
@@ -569,7 +580,7 @@
         // 푸터
         if (c.footer) {
           const fi = document.getElementById('c-footer-info');
-          if (fi) fi.innerHTML = `${c.footer.address}<br>대표전화: ${c.footer.phone} &nbsp;|&nbsp; ${c.footer.email}`;
+          if (fi) fi.innerHTML = `${esc(c.footer.address)}<br>대표전화: ${esc(c.footer.phone)} &nbsp;|&nbsp; ${esc(c.footer.email)}`;
         }
       }).catch(() => {});
   </script>

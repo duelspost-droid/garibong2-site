@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://api.github.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta name="referrer" content="no-referrer"/>
+  <meta name="robots" content="noindex, nofollow, noarchive"/>
   <title>공지사항 관리 — 가리봉2구역재개발정비사업조합</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -232,6 +235,10 @@
     </div>
 
     <p class="login-err" id="loginErr"></p>
+    <p style="font-size:11.5px; color:#94a3b8; text-align:center; margin-top:14px; line-height:1.6;">
+      🔒 <strong>공용 PC·공용 와이파이에서는 로그인하지 마세요.</strong><br>
+      개인 기기에서만 사용하고, 사용 후 반드시 <strong>로그아웃</strong>하세요.
+    </p>
   </div>
 </div>
 
@@ -652,7 +659,9 @@
   };
 
   window.doLogout = () => {
+    // 보안 강화: 로그아웃 시 세션 + 저장된 토큰 완전 삭제
     sessionStorage.clear();
+    localStorage.removeItem('gh_token_enc');
     location.reload();
   };
 

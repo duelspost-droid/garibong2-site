@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /gb2r-manage-7x9k.html
+Disallow: /unlock.html
