@@ -2,250 +2,229 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8"/>
-  <title>명함 — 가리봉2구역재개발정비사업조합</title>
+  <title>명함 시안 — 가리봉2구역재개발정비사업조합</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-      background: #e8eaf0;
-      padding: 40px;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #ffffff;
+      padding: 50px 40px;
     }
+    .brand { font-family: 'Jua', sans-serif; }
 
     h1.page-title {
-      font-size: 28px; font-weight: 900; color: #1a1a2e;
-      margin-bottom: 32px; letter-spacing: 4px;
+      font-size: 34px; font-weight: 900; color: #111;
+      margin-bottom: 36px; letter-spacing: 10px;
     }
 
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      max-width: 900px;
+      gap: 30px;
+      max-width: 1000px;
     }
 
     .card {
       background: #fff;
-      border: 1.5px solid #c8cfe0;
-      border-radius: 8px;
-      padding: 24px 24px 20px;
+      border: 1px solid #888;
       width: 100%;
       aspect-ratio: 9 / 5;
+      position: relative;
+      padding: 26px 30px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      box-shadow: 2px 2px 10px rgba(0,0,0,.07);
-      position: relative;
-      overflow: hidden;
     }
 
-    /* 배경 워터마크 */
-    .card::before {
-      content: '';
-      position: absolute;
-      right: -20px; bottom: -20px;
-      width: 140px; height: 140px;
-      background-image: url('symbol-card.svg');
-      background-size: contain;
-      background-repeat: no-repeat;
-      opacity: 0.04;
+    /* 상단 조합명 — 우리 Jua 레터마크 */
+    .card-title {
+      font-size: 33px;
+      color: #1a2a6c;
+      letter-spacing: 0.1px;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
     }
 
-    .card-header {
-      font-size: 15px;
-      font-weight: 900;
-      color: #0d2461;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid #0d2461;
-      padding-bottom: 10px;
-      margin-bottom: 14px;
-    }
-
-    .card-body {
+    /* ===== 뒷면 ===== */
+    .card.back {
+      background: #fff;
       display: flex;
       align-items: center;
-      gap: 18px;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card.back .sig-img {
+      width: 100%;
+      height: auto;
+    }
+
+    /* 본문 */
+    .card-body {
       flex: 1;
+      position: relative;
+      margin-top: 18px;
     }
 
-    .card-symbol {
-      width: 72px;
-      height: 72px;
-      flex-shrink: 0;
+    /* 좌하단 건물 라인아트 (원본 그대로) */
+    .skyline {
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 52%;
+      height: auto;
     }
 
-    .card-info {
-      flex: 1;
+    /* 우측 인물 정보 */
+    .person {
+      position: absolute;
+      right: 0; bottom: 10px;
+      width: 50%;
+    }
+    .person .role-name {
+      display: flex; align-items: baseline; gap: 9px; margin-bottom: 12px;
+    }
+    .person .role { font-size: 13px; color: #333; }
+    .person .name {
+      font-size: 26px; font-weight: 900; color: #111; letter-spacing: 6px;
+    }
+    .person .contact p {
+      font-size: 13px; color: #222; letter-spacing: 0.2px;
+      margin: 5px 0; display: flex; align-items: center;
+    }
+    .person .contact .label {
+      color: #1a2a6c; font-weight: 700; font-size: 14px;
+      margin-right: 9px; min-width: 11px;
     }
 
-    .card-role-name {
-      font-size: 13px;
-      color: #444;
-      margin-bottom: 6px;
-    }
-    .card-role-name strong {
-      font-size: 20px;
-      font-weight: 900;
-      color: #0d2461;
-      letter-spacing: 3px;
-      margin-left: 4px;
-    }
-
-    .card-contact {
-      margin-top: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .card-contact p {
-      font-size: 12.5px;
-      color: #333;
-      letter-spacing: 0.3px;
-    }
-    .card-contact span.label {
-      font-weight: 700;
-      color: #0d2461;
-      margin-right: 4px;
-      font-size: 12px;
-    }
-
-    /* 인쇄 설정 */
     @media print {
-      body { background: white; padding: 10mm; }
+      body { background: white; padding: 8mm; }
       h1.page-title { display: none; }
-      .cards-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 90mm);
-        gap: 5mm;
-      }
-      .card {
-        width: 90mm;
-        height: 50mm;
-        aspect-ratio: unset;
-        page-break-inside: avoid;
-        box-shadow: none;
-        border: 1px solid #aaa;
-      }
+      .cards-grid { grid-template-columns: repeat(2, 90mm); gap: 6mm; }
+      .card { width: 90mm; height: 50mm; aspect-ratio: unset; page-break-inside: avoid; border: 1px solid #999; }
+      .card.back { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
 <body>
 
-<h1 class="page-title">단 면</h1>
+<h1 class="page-title">단 면 (앞면)</h1>
 
-<div class="cards-grid">
+<div class="cards-grid" id="grid"></div>
 
-  <!-- 1. 감사 신수호 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">감사 <strong>신 수 호</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.5625.5599</p>
-          <p><span class="label">E</span>kafler4@hanmail.net</p>
-        </div>
-      </div>
-    </div>
-  </div>
+<h1 class="page-title" style="margin-top:56px;">뒷 면</h1>
 
-  <!-- 2. 이사 김명식 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">이사 <strong>김 명 식</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.2040.9869</p>
-          <p><span class="label">E</span>kimms9869@naver.com</p>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="cards-grid" id="gridBack"></div>
 
-  <!-- 3. 이사 서훈 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">이사 <strong>서 훈</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.5393.7006</p>
-          <p><span class="label">E</span>sh4242393@naver.com</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. 이사 설희경 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">이사 <strong>설 희 경</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.7444.5426</p>
-          <p><span class="label">E</span>duels@hanmail.net</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 5. 이사 김충식 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">이사 <strong>김 충 식</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.5229.4407</p>
-          <p><span class="label">E</span>to0112294407@gmail.com</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 6. 이사 박은경 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">이사 <strong>박 은 경</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.2796.1961</p>
-          <p><span class="label">E</span>dewhelena@hanmail.net</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 7. 이사 한영택 -->
-  <div class="card">
-    <div class="card-header">가리봉2구역 재개발정비사업조합</div>
-    <div class="card-body">
-      <img src="symbol-card.svg" class="card-symbol" alt="심볼"/>
-      <div class="card-info">
-        <div class="card-role-name">이사 <strong>한 영 택</strong></div>
-        <div class="card-contact">
-          <p><span class="label">P</span>010.3775.9310</p>
-          <p><span class="label">E</span>han0103775@naver.com</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div style="margin-top:34px; color:#666; font-size:13px;">
+  💡 인쇄: <strong>Ctrl+P</strong> → 배경 그래픽 포함 체크
 </div>
 
-<div style="margin-top:32px; color:#666; font-size:13px;">
-  💡 인쇄하려면 <strong>Ctrl+P</strong> → 배경 그래픽 포함 체크 → 인쇄
-</div>
+<script>
+// 원본 건물 스카이라인 라인아트
+const SKYLINE = `<svg class="skyline" viewBox="0 0 300 130" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#3a3a3a" stroke-width="1.3" stroke-linejoin="round">
+  <!-- 좌측 낮은 건물군 -->
+  <path d="M6 126 L6 74 L18 74 L18 64 L40 64 L40 74 L54 74 L54 126"/>
+  <line x1="12" y1="82" x2="12" y2="120"/>
+  <line x1="26" y1="72" x2="26" y2="120"/>
+  <line x1="34" y1="72" x2="34" y2="120"/>
+  <line x1="48" y1="82" x2="48" y2="120"/>
+  <rect x="8" y="86" width="3" height="4"/><rect x="14" y="86" width="3" height="4"/>
+  <rect x="8" y="94" width="3" height="4"/><rect x="14" y="94" width="3" height="4"/>
+  <rect x="8" y="102" width="3" height="4"/><rect x="14" y="102" width="3" height="4"/>
+  <rect x="43" y="86" width="3" height="4"/><rect x="49" y="86" width="3" height="4"/>
+  <rect x="43" y="94" width="3" height="4"/><rect x="49" y="94" width="3" height="4"/>
+  <rect x="43" y="102" width="3" height="4"/><rect x="49" y="102" width="3" height="4"/>
+  <!-- 중앙 메인 타워 -->
+  <path d="M64 126 L64 40 L70 32 L92 32 L98 40 L98 126"/>
+  <line x1="81" y1="32" x2="81" y2="40"/>
+  <rect x="68" y="46" width="6" height="7"/><rect x="84" y="46" width="6" height="7"/>
+  <rect x="68" y="59" width="6" height="7"/><rect x="84" y="59" width="6" height="7"/>
+  <rect x="68" y="72" width="6" height="7"/><rect x="84" y="72" width="6" height="7"/>
+  <rect x="68" y="85" width="6" height="7"/><rect x="84" y="85" width="6" height="7"/>
+  <rect x="68" y="98" width="6" height="7"/><rect x="84" y="98" width="6" height="7"/>
+  <!-- 우측 중간 건물 -->
+  <path d="M108 126 L108 58 L142 58 L142 126"/>
+  <line x1="125" y1="58" x2="125" y2="120"/>
+  <rect x="112" y="66" width="6" height="6"/><rect x="131" y="66" width="6" height="6"/>
+  <rect x="112" y="78" width="6" height="6"/><rect x="131" y="78" width="6" height="6"/>
+  <rect x="112" y="90" width="6" height="6"/><rect x="131" y="90" width="6" height="6"/>
+  <rect x="112" y="102" width="6" height="6"/><rect x="131" y="102" width="6" height="6"/>
+  <!-- 우측 낮은 건물 -->
+  <path d="M150 126 L150 76 L176 76 L176 126"/>
+  <line x1="163" y1="76" x2="163" y2="120"/>
+  <rect x="154" y="84" width="5" height="5"/><rect x="166" y="84" width="5" height="5"/>
+  <rect x="154" y="96" width="5" height="5"/><rect x="166" y="96" width="5" height="5"/>
+  <rect x="154" y="108" width="5" height="5"/><rect x="166" y="108" width="5" height="5"/>
+  <!-- 나무 2그루 -->
+  <ellipse cx="194" cy="104" rx="10" ry="15"/>
+  <line x1="194" y1="119" x2="194" y2="126"/>
+  <ellipse cx="216" cy="109" rx="8" ry="11"/>
+  <line x1="216" y1="120" x2="216" y2="126"/>
+  <!-- 지면선 -->
+  <line x1="0" y1="126" x2="236" y2="126"/></svg>`;
+
+const people = [
+  { role:'감사', name:'신 수 호', p:'010.5625.5599', e:'kafler4@hanmail.net' },
+  { role:'이사', name:'김 명 식', p:'010.2040.9869', e:'kimms9869@naver.com' },
+  { role:'이사', name:'서 훈',     p:'010.5393.7006', e:'sh4242393@naver.com' },
+  { role:'이사', name:'설 희 경', p:'010.7444.5426', e:'duels@hanmail.net' },
+  { role:'이사', name:'김 충 식', p:'010.5229.4407', e:'to0112294407@gmail.com' },
+  { role:'이사', name:'박 은 경', p:'010.2796.1961', e:'dewhelena@hanmail.net' },
+  { role:'이사', name:'한 영 택', p:'010.3775.9310', e:'han0103775@naver.com' },
+];
+
+document.getElementById('grid').innerHTML = people.map(pp => `
+  <div class="card">
+    <div class="brand card-title">가리봉2구역 재개발정비사업조합</div>
+    <div class="card-body">
+      ${SKYLINE}
+      <div class="person">
+        <div class="role-name">
+          <span class="role">${pp.role}</span>
+          <span class="name">${pp.name}</span>
+        </div>
+        <div class="contact">
+          <p><span class="label">P</span>${pp.p}</p>
+          <p><span class="label">E</span>${pp.e}</p>
+        </div>
+      </div>
+    </div>
+  </div>`).join('');
+
+// 뒷면 — 홈페이지 풀 시그니처(inline, 페이지 Jua 폰트 적용)
+const SIGNATURE = `<svg class="sig-img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 160">
+  <defs><clipPath id="sigc"><circle cx="60" cy="60" r="54"/></clipPath></defs>
+  <svg x="10" y="30" width="100" height="100" viewBox="0 0 120 120">
+    <circle cx="60" cy="60" r="54" fill="#0d2461"/>
+    <line x1="6" y1="80" x2="114" y2="80" stroke="rgba(255,255,255,0.25)" stroke-width="1" clip-path="url(#sigc)"/>
+    <path d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#sigc)"/>
+    <line x1="60" y1="55" x2="60" y2="50" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="72" y1="59" x2="76" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="48" y1="59" x2="44" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+    <rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#sigc)"/>
+    <polygon points="60,31 68,40 52,40" fill="white" clip-path="url(#sigc)"/>
+    <rect x="55" y="47" width="4" height="4" rx="0.5" fill="white"/><rect x="61" y="47" width="4" height="4" rx="0.5" fill="white"/>
+    <rect x="55" y="56" width="4" height="4" rx="0.5" fill="white"/><rect x="61" y="56" width="4" height="4" rx="0.5" fill="white"/>
+    <rect x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#sigc)"/>
+    <rect x="39" y="57" width="3" height="3" rx="0.4" fill="white"/><rect x="44" y="57" width="3" height="3" rx="0.4" fill="white"/>
+    <rect x="39" y="64" width="3" height="3" rx="0.4" fill="white"/><rect x="44" y="64" width="3" height="3" rx="0.4" fill="white"/>
+    <rect x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#sigc)"/>
+    <rect x="73" y="60" width="3" height="3" rx="0.4" fill="white"/><rect x="78" y="60" width="3" height="3" rx="0.4" fill="white"/>
+    <rect x="73" y="67" width="3" height="3" rx="0.4" fill="white"/><rect x="78" y="67" width="3" height="3" rx="0.4" fill="white"/>
+    <circle cx="60" cy="60" r="54" stroke="white" stroke-width="1.8" fill="none"/>
+    <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" fill="none"/>
+  </svg>
+  <text class="brand" x="130" y="54" font-size="30" fill="#0d2461" letter-spacing="1">가리봉2구역</text>
+  <text x="130" y="80" font-family="'Noto Sans KR',sans-serif" font-size="16" font-weight="600" fill="#0d2461" letter-spacing="0.2">재개발정비사업조합</text>
+  <line x1="130" y1="90" x2="392" y2="90" stroke="#d4d8e0" stroke-width="1.5"/>
+  <text x="130" y="110" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="500" fill="#4b5563" letter-spacing="0.2">새벽이 밝아오는 가리봉, 함께 만드는 내일</text>
+  <text x="130" y="130" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="400" fill="#7a8290">서울 구로구 구로동로 17-1, 3층</text>
+</svg>`;
+const backCard = `<div class="card back">${SIGNATURE}</div>`;
+document.getElementById('gridBack').innerHTML = people.map(() => backCard).join('');
+</script>
 
 </body>
 </html>
