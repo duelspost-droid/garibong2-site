@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<title>폰트 비교 - 가리봉2구역</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Jua&family=Gothic+A1:wght@700;800;900&family=Noto+Sans+KR:wght@800;900&family=Nanum+Myeongjo:wght@700;800&family=Song+Myung&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#f5f7fa; padding:40px; font-family:'Noto Sans KR',sans-serif; }
+  h1 { color:#0d2461; font-size:26px; margin-bottom:30px; }
+  .row { display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:20px; }
+  .card { background:#fff; border:1px solid #e0e4eb; border-radius:12px; padding:24px; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+  .fname { font-size:12px; color:#7a8290; font-family:'Noto Sans KR'; margin-bottom:16px; font-weight:600; letter-spacing:1px; }
+  .lockup { display:flex; align-items:center; gap:14px; }
+  .sym { width:78px; height:78px; flex-shrink:0; }
+  .divider { width:1.5px; height:46px; background:#d4d8e0; }
+  .txt .main { color:#0d2461; line-height:1; }
+  .txt .sub { color:#4b5563; font-family:'Noto Sans KR'; font-weight:500; font-size:13px; letter-spacing:3px; margin-top:7px; }
+
+  .f1 .main { font-family:'Black Han Sans'; font-size:30px; letter-spacing:1px; }
+  .f2 .main { font-family:'Do Hyeon'; font-size:29px; letter-spacing:1px; }
+  .f3 .main { font-family:'Jua'; font-size:30px; letter-spacing:1px; }
+  .f4 .main { font-family:'Gothic A1'; font-weight:900; font-size:28px; letter-spacing:0.5px; }
+  .f5 .main { font-family:'Nanum Myeongjo'; font-weight:800; font-size:29px; letter-spacing:1px; }
+  .f6 .main { font-family:'Song Myung'; font-size:30px; letter-spacing:2px; }
+  .f7 .main { font-family:'Noto Sans KR'; font-weight:900; font-size:27px; letter-spacing:0.5px; }
+  .f8 .main { font-family:'Gowun Dodum'; font-size:29px; letter-spacing:1px; }
+</style>
+</head>
+<body>
+<h1>폰트 비교 — "가리봉2구역"</h1>
+<div class="row" id="rows"></div>
+
+<script>
+const SYM = `<svg class="sym" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<defs><clipPath id="c"><circle cx="60" cy="60" r="54"/></clipPath></defs>
+<circle cx="60" cy="60" r="54" fill="#0d2461"/>
+<line x1="6" y1="80" x2="114" y2="80" stroke="rgba(255,255,255,0.25)" stroke-width="1" clip-path="url(#c)"/>
+<path d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#c)"/>
+<line x1="60" y1="55" x2="60" y2="50" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="72" y1="59" x2="76" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+<line x1="48" y1="59" x2="44" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+<rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#c)"/>
+<polygon points="60,31 68,40 52,40" fill="white" clip-path="url(#c)"/>
+<rect x="55" y="47" width="4" height="4" rx="0.5" fill="white"/><rect x="61" y="47" width="4" height="4" rx="0.5" fill="white"/>
+<rect x="55" y="56" width="4" height="4" rx="0.5" fill="white"/><rect x="61" y="56" width="4" height="4" rx="0.5" fill="white"/>
+<rect x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#c)"/>
+<rect x="39" y="57" width="3" height="3" rx="0.4" fill="white"/><rect x="44" y="57" width="3" height="3" rx="0.4" fill="white"/>
+<rect x="39" y="64" width="3" height="3" rx="0.4" fill="white"/><rect x="44" y="64" width="3" height="3" rx="0.4" fill="white"/>
+<rect x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#c)"/>
+<rect x="73" y="60" width="3" height="3" rx="0.4" fill="white"/><rect x="78" y="60" width="3" height="3" rx="0.4" fill="white"/>
+<rect x="73" y="67" width="3" height="3" rx="0.4" fill="white"/><rect x="78" y="67" width="3" height="3" rx="0.4" fill="white"/>
+<circle cx="60" cy="60" r="54" stroke="white" stroke-width="1.8" fill="none"/>
+<circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" fill="none"/></svg>`;
+
+const fonts = [
+  ['f1','① Black Han Sans (강렬·임팩트)'],
+  ['f2','② Do Hyeon (도현·단단함)'],
+  ['f3','③ Jua (주아·친근함)'],
+  ['f4','④ Gothic A1 900 (모던 고딕)'],
+  ['f5','⑤ Nanum Myeongjo (명조·품격)'],
+  ['f6','⑥ Song Myung (송명·전통미)'],
+  ['f7','⑦ Noto Sans 900 (기본·안정)'],
+  ['f8','⑧ Gowun Dodum (고운돋움·부드러움)'],
+];
+
+document.getElementById('rows').innerHTML = fonts.map(([cls,name])=>`
+  <div class="card">
+    <div class="fname">${name}</div>
+    <div class="lockup ${cls}">
+      ${SYM}
+      <div class="divider"></div>
+      <div class="txt">
+        <div class="main">가리봉2구역</div>
+        <div class="sub">재개발정비사업조합</div>
+      </div>
+    </div>
+  </div>`).join('');
+</script>
+</body>
+</html>

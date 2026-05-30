@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <clipPath id="circ"><circle cx="60" cy="60" r="54"/></clipPath>
+  </defs>
+
+  <!-- 배경 원 -->
+  <circle cx="60" cy="60" r="54" fill="#0d2461"/>
+
+  <!-- 지평선 -->
+  <line x1="6" y1="80" x2="114" y2="80" stroke="rgba(255,255,255,0.25)" stroke-width="1" clip-path="url(#circ)"/>
+
+  <!-- 태양 반원 (심플) -->
+  <path d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#circ)"/>
+
+  <!-- 태양 광선 (3개만, 심플) -->
+  <line x1="60" y1="55" x2="60" y2="50" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="72" y1="59" x2="76" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="48" y1="59" x2="44" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+
+  <!-- 중앙 메인 타워 -->
+  <rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#circ)"/>
+  <!-- 타워 꼭대기 삼각형 -->
+  <polygon points="60,31 68,40 52,40" fill="white" clip-path="url(#circ)"/>
+  <!-- 타워 창문 2개 -->
+  <rect x="55" y="47" width="4" height="4" rx="0.5" fill="white"/>
+  <rect x="61" y="47" width="4" height="4" rx="0.5" fill="white"/>
+  <rect x="55" y="56" width="4" height="4" rx="0.5" fill="white"/>
+  <rect x="61" y="56" width="4" height="4" rx="0.5" fill="white"/>
+
+  <!-- 왼쪽 작은 건물 -->
+  <rect x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#circ)"/>
+  <rect x="39" y="57" width="3" height="3" rx="0.4" fill="white"/>
+  <rect x="44" y="57" width="3" height="3" rx="0.4" fill="white"/>
+  <rect x="39" y="64" width="3" height="3" rx="0.4" fill="white"/>
+  <rect x="44" y="64" width="3" height="3" rx="0.4" fill="white"/>
+
+  <!-- 오른쪽 작은 건물 -->
+  <rect x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#circ)"/>
+  <rect x="73" y="60" width="3" height="3" rx="0.4" fill="white"/>
+  <rect x="78" y="60" width="3" height="3" rx="0.4" fill="white"/>
+  <rect x="73" y="67" width="3" height="3" rx="0.4" fill="white"/>
+  <rect x="78" y="67" width="3" height="3" rx="0.4" fill="white"/>
+
+  <!-- 원 테두리 (이중) -->
+  <circle cx="60" cy="60" r="54" stroke="white" stroke-width="1.8" fill="none"/>
+  <circle cx="60" cy="60" r="50" stroke="white" stroke-width="0.6" stroke-opacity="0.3" fill="none"/>
+</svg>

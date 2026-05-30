@@ -127,7 +127,7 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 /* Logo */
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo-symbol { width: clamp(34px, 5vw, 42px); height: clamp(34px, 5vw, 42px); }
-.logo-name { font-size: clamp(14px, 2.2vw, 17px); font-weight: 800; color: var(--navy); letter-spacing: -.3px; line-height: 1.2; }
+.logo-name { font-family: 'Jua', sans-serif; font-size: clamp(16px, 2.4vw, 19px); font-weight: 400; color: var(--navy); letter-spacing: .3px; line-height: 1.2; }
 .logo-sub  { font-size: clamp(9px, 1.2vw, 11px); color: var(--gray400); font-weight: 500; }
 
 /* GNav */
