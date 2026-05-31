@@ -6,11 +6,14 @@
 - **목적**: 가리봉2구역재개발정비사업조합 공식 홈페이지 + 관리자 시스템(CMS)
 - **호스팅**: GitHub Pages (저장소 `duelspost-droid/garibong2-site`, 브랜치 `master`)
 - **배포 방식**: `master`에 push → GitHub Pages 자동 빌드 (보통 1~2분)
-- **라이브 주소**
-  - 홈페이지: https://garibong2.kro.kr
-  - CI 소개: https://garibong2.kro.kr/ci.html
-  - 임원소개: https://garibong2.kro.kr/officers.html
-  - 관리자: https://garibong2.kro.kr/gb2r-manage-7x9k.html (난독화 URL, robots 차단)
+- **라이브 주소** (정식 도메인 `garibong2.co.kr`, 가비아 등록, HTTPS 적용·강제)
+  - 홈페이지: https://garibong2.co.kr
+  - CI 소개: https://garibong2.co.kr/ci.html
+  - 임원소개: https://garibong2.co.kr/officers.html
+  - 관리자: https://garibong2.co.kr/gb2r-manage-7x9k.html (난독화 URL, robots 차단)
+  - 명함 갤러리: https://garibong2.co.kr/card_versions/
+  - ⚠️ 옛 무료 도메인 `garibong2.kro.kr`은 **폐기**(kro.kr은 PSL 미등록 → Let's Encrypt 공유 한도로 HTTPS 발급 불가). 더 이상 사용 안 함.
+  - 도메인 DNS: 가비아에서 A레코드 4개(185.199.108~111.153) + `www` CNAME→`duelspost-droid.github.io`
 
 ## 기술 스택
 - 순수 HTML/CSS/JS (프레임워크 없음), 반응형
@@ -33,8 +36,13 @@
 | `symbol.svg` | CI 심볼 (태양+건물, 원형 엠블럼) |
 | `logo-horizontal.svg` / `logo-vertical.svg` | 레터마크 |
 | `signature-full.svg` / `signature-compact.svg` | 시그니처 |
-| `cards.html` | 명함 미리보기 (앞면 7인 + 뒷면 풀시그니처) |
-| `card_files/` | 명함 산출물 (SVG 편집용 / PDF 인쇄용 / JPG) — **PR #2 브랜치에 있음** |
+| `cards.html` | 명함 라이브 미리보기 (앞면 7인 + 뒷면). **현재 v13** = v11 + 뒷면 우하단 홈페이지 QR |
+| `card_versions/` | 명함 시안 갤러리(`index.html`) + 버전 스냅샷 `v1~v13.html` + 인쇄 산출물 `v11_files/` |
+| `card_versions/v11_files/` | 명함 인쇄 산출물 (현재 v13 내용): 8종 각 SVG/PNG/JPG/PDF + 통합본(all_cards.svg, all_cards_sheet.png·jpg, all_cards_8page.pdf) + README |
+| `qr_home.svg` / `qr_home.png` | 홈페이지(garibong2.co.kr) QR코드 — 명함 뒷면에 사용 |
+| `og-image.png` / `og-source.svg` | 링크 미리보기(카톡·SNS) 이미지 1200×630 (심볼+조합명) |
+| `sitemap.xml` | 검색엔진 사이트맵 (홈·임원·CI) |
+| `backup.ps1` / `daily-data-backup.ps1` / `setup-backup.ps1` | **Windows 전용** 백업 스크립트(PowerShell). Mac에선 재작성 필요 |
 | `cloudflare-worker/` | Worker 코드(`worker.js`) + 배포 가이드(README, DASHBOARD-GUIDE) |
 | `robots.txt` | 관리자·unlock 페이지 검색 차단 |
 | `unlock.html` | 로그인 잠금(localStorage) 해제용 보조 페이지 |
@@ -62,7 +70,7 @@
 
 ### 탭 구성
 1. **공지사항** — 등록/수정/삭제
-2. **홈페이지 내용** — 6개 섹션(히어로/조합소개/인사말/위치·조감도/임원소개/문의) + 이미지 업로드
+2. **홈페이지 내용** — 8개 섹션(히어로/조합소개/인사말/위치·조감도/**사업 진행 현황**/임원소개/문의/**푸터 저작권**) + 이미지 업로드. 진행현황은 가변 단계 편집기(상태 완료·진행중·예정), 푸터 저작권은 메인·임원·CI 페이지에 동기화
 3. **통계·기록** (슈퍼/권한자) — 방문통계(7일/30일/1년/전체) + 관리자 감사기록
 4. **설정** (슈퍼) — 비밀번호 변경, 일반 관리자 권한(세부) 설정
 
@@ -88,7 +96,7 @@
 ### 바인딩 (Cloudflare 대시보드에서 설정)
 - **KV**: `AUDIT` — keys: `log`(감사로그), `pw`(비밀번호), `perms`(일반관리자 권한)
 - **Secret**: `GH_TOKEN`(GitHub PAT), `ADMIN_PW`, `STAFF_PW`
-- **Var**: `GH_REPO`=`duelspost-droid/garibong2-site`, `ALLOWED_ORIGINS`=`https://garibong2.kro.kr,http://garibong2.kro.kr,https://duelspost-droid.github.io`
+- **Var**: `GH_REPO`=`duelspost-droid/garibong2-site`, `ALLOWED_ORIGINS`=`https://garibong2.co.kr,https://www.garibong2.co.kr,https://duelspost-droid.github.io` (도메인 변경 시 이 값도 갱신해야 관리자 CORS 통과)
 
 ### 엔드포인트
 - `POST /api/login` `{password}` → `{ok, role, perms}`
@@ -129,4 +137,25 @@
 - 콘텐츠/공지 변경은 **관리자 페이지에서** 하는 게 정석 (직접 JSON 편집 시 관리자 동시편집과 충돌 가능 → GitHub API가 source of truth)
 - CSS/HTML 변경 후 모바일 캐시 때문에 안 보이면 `style.css?v=` 버전 올리기
 - Worker 로직 변경 시 `cloudflare-worker/worker.js` 수정 후 **Cloudflare 대시보드에 직접 붙여넣어 Deploy** (CLI/Node 미설치)
-- 한글이 들어간 정규식/문자열을 PowerShell로 다룰 때 인코딩 주의 (UTF-8)
+- 한글이 들어간 정규식/문자열을 PowerShell로 다룰 때 인코딩 주의 (UTF-8). PowerShell .ps1에 한글 리터럴이 필요하면 UTF-8 BOM 저장 또는 SVG 숫자참조(`&#x...;`) 사용
+- 이미지/명함/OG 렌더는 **Chrome 헤드리스 스크린샷** 사용. Windows: `C:\Program Files\Google\Chrome\Application\chrome.exe`, Mac: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+- 헤드리스 스크린샷은 실제 폰 뷰포트와 차이가 있어 모바일 검증은 실제 기기가 정확
+
+---
+
+## 최근 주요 작업 (2026-06-01 기준)
+- **정식 도메인 이전**: `garibong2.kro.kr`(무료, HTTPS 불가) → **`garibong2.co.kr`**(가비아) + Let's Encrypt HTTPS + Enforce HTTPS. CNAME 파일·Pages cname·Worker ALLOWED_ORIGINS·각종 메타태그 모두 co.kr로 갱신.
+- **명함 v13**: 뒷면 우하단에 홈페이지 QR 추가(앞면 7종은 v11 유지). 인쇄 산출물 전체 재생성. CI 페이지 명함 쇼케이스에도 반영.
+- **SEO**: `robots.txt`(비공개 페이지 차단+sitemap), `sitemap.xml`, 구조화데이터(JSON-LD Organization), 네이버/구글 소유확인 메타태그(`naver-site-verification`, `google-site-verification`) — index.html `<head>`에 있음.
+- **링크 미리보기(OG)**: og/twitter 메타 + `og-image.png`(심볼+조합명). 카톡은 캐시라 `developers.kakao.com/tool/clear/og`로 초기화 필요.
+- **전화·이메일 클릭**: 문의·푸터의 전화→`tel:`, 이메일→`mailto:` (content.json 값 기반).
+- **메인 "조합 더 알아보기" 섹션**: CI 의미 패널(네이비, 심볼+슬로건) + 임원 카드, ci.html/officers.html 링크.
+- **반응형 보강**: 관리자·ci.html viewport/미디어쿼리, 모바일 글자 확대, CI 슬로건 한 줄 맞춤.
+- **네비 통일**: officers.html 메뉴를 홈과 동일하게(인사말 등), 로고/홈 클릭 시 항상 메인 최상단.
+- **백업 체계(Windows)**: 커밋마다 ZIP(`backup.ps1`+post-commit 훅), 매일 03:00 데이터 백업(`daily-data-backup.ps1`+작업스케줄러: content/notices/방문수/감사로그/perms → `backups/`(gitignore)). 감사로그용 비번은 `backups/worker_pw.txt`(로컬 전용). **Mac에선 미작동 → bash+launchd로 재작성 필요.**
+
+## 다른 PC에서 이어가기 (특히 Mac)
+1. `gh auth login` → `git clone https://github.com/duelspost-droid/garibong2-site.git`
+2. 모든 코드·이력은 GitHub에 있음. 이 `CLAUDE.md`가 맥락 제공(대화기록은 PC 로컬 `~/.claude`라 동기화 안 됨).
+3. 작업 전 `git pull`, 후 `git commit && git push`.
+4. Windows 전용 백업/생성 스크립트는 Mac 경로·셸에 맞게 재작성 필요(요청 시 변환).
