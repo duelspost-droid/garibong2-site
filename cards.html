@@ -50,19 +50,24 @@
       border-bottom: 1px solid #c9d0de;
     }
 
-    /* ===== 뒷면 ===== */
+    /* ===== 뒷면 (v12: QR 추가) ===== */
     .card.back {
       background: #fff;
-      display: flex;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-      padding: 24px;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 30px;
     }
-    .card.back .sig-img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+    .bk-main { display: flex; align-items: center; gap: 14px; }
+    .bk-sym { width: 62px; height: 62px; flex-shrink: 0; }
+    .bk-org { font-size: 24px; color: #0d2461; line-height: 1; }
+    .bk-sub { font-size: 12.5px; color: #0d2461; font-weight: 600; margin-top: 4px; }
+    .bk-slogan { font-size: 9px; color: #7a8290; margin-top: 8px; line-height: 1.5; }
+    .bk-addr { font-size: 8.5px; color: #9aa3b2; margin-top: 4px; }
+    .bk-qr { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; border-left: 1px solid #e6e9f0; padding-left: 20px; }
+    .bk-qr img { width: 76px; height: 76px; display: block; }
+    .bk-qr-cap { font-size: 8px; color: #0d2461; font-weight: 700; margin-top: 5px; letter-spacing: 0.3px; white-space: nowrap; }
 
     /* 본문 — 그래픽과 정보를 수직 중앙 + 좌우 균등 배치 */
     .card-body {
@@ -212,36 +217,37 @@ document.getElementById('grid').innerHTML = people.map(pp => `
     </div>
   </div>`).join('');
 
-// 뒷면 — 홈페이지 풀 시그니처(inline, 페이지 Jua 폰트 적용)
-const SIGNATURE = `<svg class="sig-img" xmlns="http://www.w3.org/2000/svg" viewBox="6 26 351 110">
-  <defs><clipPath id="sigc"><circle cx="60" cy="60" r="54"/></clipPath></defs>
-  <svg x="10" y="30" width="100" height="100" viewBox="0 0 120 120">
+// 뒷면 — v12: 심볼+조합명+슬로건 (좌) | QR코드 (우)
+const BK_SYMBOL = `<svg class="bk-sym" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    <defs><clipPath id="bkc"><circle cx="60" cy="60" r="54"/></clipPath></defs>
     <circle cx="60" cy="60" r="54" fill="#0d2461"/>
-    <line x1="6" y1="80" x2="114" y2="80" stroke="rgba(255,255,255,0.25)" stroke-width="1" clip-path="url(#sigc)"/>
-    <path d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#sigc)"/>
+    <line x1="6" y1="80" x2="114" y2="80" stroke="rgba(255,255,255,0.25)" stroke-width="1" clip-path="url(#bkc)"/>
+    <path d="M42 80 A18 18 0 0 1 78 80" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#bkc)"/>
     <line x1="60" y1="55" x2="60" y2="50" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
     <line x1="72" y1="59" x2="76" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
     <line x1="48" y1="59" x2="44" y2="55" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
-    <rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#sigc)"/>
-    <polygon points="60,31 68,40 52,40" fill="white" clip-path="url(#sigc)"/>
+    <rect x="52" y="40" width="16" height="40" rx="1.5" fill="none" stroke="white" stroke-width="1.8" clip-path="url(#bkc)"/>
+    <polygon points="60,31 68,40 52,40" fill="white" clip-path="url(#bkc)"/>
     <rect x="55" y="47" width="4" height="4" rx="0.5" fill="white"/><rect x="61" y="47" width="4" height="4" rx="0.5" fill="white"/>
     <rect x="55" y="56" width="4" height="4" rx="0.5" fill="white"/><rect x="61" y="56" width="4" height="4" rx="0.5" fill="white"/>
-    <rect x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#sigc)"/>
+    <rect x="36" y="53" width="14" height="27" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#bkc)"/>
     <rect x="39" y="57" width="3" height="3" rx="0.4" fill="white"/><rect x="44" y="57" width="3" height="3" rx="0.4" fill="white"/>
     <rect x="39" y="64" width="3" height="3" rx="0.4" fill="white"/><rect x="44" y="64" width="3" height="3" rx="0.4" fill="white"/>
-    <rect x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#sigc)"/>
+    <rect x="70" y="56" width="14" height="24" rx="1" fill="none" stroke="white" stroke-width="1.6" clip-path="url(#bkc)"/>
     <rect x="73" y="60" width="3" height="3" rx="0.4" fill="white"/><rect x="78" y="60" width="3" height="3" rx="0.4" fill="white"/>
     <rect x="73" y="67" width="3" height="3" rx="0.4" fill="white"/><rect x="78" y="67" width="3" height="3" rx="0.4" fill="white"/>
     <circle cx="60" cy="60" r="54" stroke="white" stroke-width="1.8" fill="none"/>
     <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.15)" stroke-width="0.8" fill="none"/>
-  </svg>
-  <text class="brand" x="130" y="54" font-size="30" fill="#0d2461" letter-spacing="1">가리봉2구역</text>
-  <text x="130" y="80" font-family="'Noto Sans KR',sans-serif" font-size="16" font-weight="600" fill="#0d2461" letter-spacing="0.2">재개발정비사업조합</text>
-  <line x1="130" y1="90" x2="348" y2="90" stroke="#d4d8e0" stroke-width="1.5"/>
-  <text x="130" y="110" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="500" fill="#4b5563" letter-spacing="0.2">새벽이 밝아오는 가리봉, 함께 만드는 내일</text>
-  <text x="130" y="130" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="400" fill="#7a8290">서울 구로구 구로동로 17-1, 3층</text>
-</svg>`;
-const backCard = `<div class="card back">${SIGNATURE}</div>`;
+  </svg>`;
+const backCard = `<div class="card back">
+    <div class="bk-main">${BK_SYMBOL}<div class="bk-text">
+      <div class="bk-org brand">가리봉2구역</div>
+      <div class="bk-sub">재개발정비사업조합</div>
+      <div class="bk-slogan">새벽이 밝아오는 가리봉,<br>함께 만드는 내일</div>
+      <div class="bk-addr">서울 구로구 구로동로 17-1, 3층</div>
+    </div></div>
+    <div class="bk-qr"><img src="qr_home.svg" alt="홈페이지 QR"/><div class="bk-qr-cap">홈페이지 바로가기</div></div>
+  </div>`;
 document.getElementById('gridBack').innerHTML = people.map(() => backCard).join('');
 </script>
 
