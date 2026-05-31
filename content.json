@@ -51,9 +51,18 @@
     "address": "서울 구로구 구로동로 17-1, 3층",
     "address_full": "서울 구로구 구로동로 17-1, 3층"
   },
+  "progress": [
+    { "status": "done", "title": "정비구역 지정", "desc": "서울시 정비구역 고시" },
+    { "status": "done", "title": "조합 설립 인가", "desc": "구청 조합설립인가 취득" },
+    { "status": "active", "title": "사업시행계획인가", "desc": "사업시행계획 인가 신청 및 검토 중" },
+    { "status": "upcoming", "title": "관리처분계획인가", "desc": "분양 및 관리처분 계획 수립" },
+    { "status": "upcoming", "title": "이주 및 철거", "desc": "기존 건물 이주 및 철거 공사" },
+    { "status": "upcoming", "title": "착공 및 준공", "desc": "신축 아파트 건설 및 입주" }
+  ],
   "footer": {
     "address": "서울 구로구 구로동로 17-1, 3층",
     "phone": "02-853-0923",
-    "email": "glb0923@naver.com"
+    "email": "glb0923@naver.com",
+    "copyright": "© 2025 가리봉2구역재개발정비사업조합. All rights reserved."
   }
 }

@@ -386,7 +386,7 @@
         <h2>사업 진행 현황</h2>
         <p>단계별 진행 현황을 확인하세요.</p>
       </div>
-      <div class="steps">
+      <div class="steps" id="c-progress-steps">
         <div class="step done">
           <div class="step-left">
             <div class="step-dot"><svg width="14" height="10" viewBox="0 0 14 10"><polyline points="1,5 5,9 13,1" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -527,7 +527,7 @@
       </nav>
     </div>
     <div class="footer-bottom">
-      <div class="container">© 2025 가리봉2구역재개발정비사업조합. All rights reserved.</div>
+      <div class="container" id="c-footer-copyright">© 2025 가리봉2구역재개발정비사업조합. All rights reserved.</div>
     </div>
   </footer>
 
@@ -595,12 +595,43 @@
         setText('c-contact-hours',   c.contact?.hours);
         setText('c-contact-email',   c.contact?.email);
         setText('c-contact-address', c.contact?.address_full || c.contact?.address);
+        // 사업 진행 현황
+        renderProgress(c.progress);
         // 푸터
         if (c.footer) {
           const fi = document.getElementById('c-footer-info');
           if (fi) fi.innerHTML = `${esc(c.footer.address)}<br>대표전화: ${esc(c.footer.phone)} &nbsp;|&nbsp; ${esc(c.footer.email)}`;
+          setText('c-footer-copyright', c.footer.copyright);
         }
       }).catch(() => {});
+
+    // 진행 현황 단계 렌더 (content.json의 progress 배열 기반)
+    function renderProgress(steps) {
+      const box = document.getElementById('c-progress-steps');
+      if (!box || !Array.isArray(steps) || !steps.length) return;
+      const e = s => String(s == null ? '' : s).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      box.innerHTML = steps.map((st, i) => {
+        const last = i === steps.length - 1;
+        let cls = '', dot = '', badge = '';
+        if (st.status === 'done') {
+          cls = 'done';
+          dot = '<div class="step-dot"><svg width="14" height="10" viewBox="0 0 14 10"><polyline points="1,5 5,9 13,1" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+          badge = '<span class="step-badge done">완료</span>';
+        } else if (st.status === 'active') {
+          cls = 'active';
+          dot = '<div class="step-dot pulse"></div>';
+          badge = '<span class="step-badge active">진행중</span>';
+        } else {
+          dot = '<div class="step-dot empty"></div>';
+          badge = '<span class="step-badge upcoming">예정</span>';
+        }
+        const line = last ? '' : '<div class="step-line"></div>';
+        return `<div class="step ${cls}${last ? ' last' : ''}">
+          <div class="step-left">${dot}${line}</div>
+          <div class="step-card">${badge}<h4>${e(st.title)}</h4><p>${e(st.desc)}</p></div>
+        </div>`;
+      }).join('');
+    }
   </script>
 
   <script>

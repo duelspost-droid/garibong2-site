@@ -446,6 +446,13 @@
       </div>
     </div>
 
+    <div class="card" data-sec="progress">
+      <div class="card-title">📈 사업 진행 현황</div>
+      <p style="font-size:12px; color:#888; margin:-8px 0 14px;">단계별 상태(완료·진행중·예정)·단계명·설명을 수정하세요. 위에서부터 순서대로 표시됩니다.</p>
+      <div id="ct-progress-list"></div>
+      <button type="button" class="btn-small" onclick="addProgressStep()">➕ 단계 추가</button>
+    </div>
+
     <div class="card" data-sec="officers">
       <div class="card-title">🧑‍💼 임원소개 페이지</div>
       <div class="form-row">
@@ -480,6 +487,11 @@
         <div class="field"><label>사무소 주소 (짧게)</label><input class="finput" id="ct-contact-address"/></div>
         <div class="field"><label>사무소 주소 (전체)</label><input class="finput" id="ct-contact-address-full"/></div>
       </div>
+    </div>
+
+    <div class="card" data-sec="footer">
+      <div class="card-title">📄 푸터 (하단 저작권)</div>
+      <div class="form-row"><div class="field"><label>저작권 문구 (맨 아래 한 줄)</label><input class="finput" id="ct-footer-copyright" placeholder="© 2025 가리봉2구역재개발정비사업조합. All rights reserved."/></div></div>
     </div>
 
     <div style="text-align:right; margin-bottom:32px;">
@@ -596,8 +608,10 @@
       <label class="perm-chk"><input type="checkbox" id="perm-c-about"/> 🏢 조합 소개</label>
       <label class="perm-chk"><input type="checkbox" id="perm-c-greeting"/> 👤 조합장 인사말</label>
       <label class="perm-chk"><input type="checkbox" id="perm-c-visual"/> 🏙️ 위치도·조감도</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-progress"/> 📈 사업 진행 현황</label>
       <label class="perm-chk"><input type="checkbox" id="perm-c-officers"/> 🧑‍💼 임원소개</label>
       <label class="perm-chk"><input type="checkbox" id="perm-c-contact"/> 📞 문의·연락처</label>
+      <label class="perm-chk"><input type="checkbox" id="perm-c-footer"/> 📄 푸터(저작권)</label>
 
       <div style="font-size:13px; font-weight:700; color:#0d2461; margin:16px 0 6px;">📊 통계·기록</div>
       <label class="perm-chk"><input type="checkbox" id="perm-s-visits"/> 방문 통계 보기</label>
@@ -691,7 +705,8 @@
       notices: p.notices !== false,
       content: {
         hero: c.hero !== false, about: c.about !== false, greeting: c.greeting !== false,
-        visual: c.visual !== false, officers: c.officers !== false, contact: c.contact !== false
+        visual: c.visual !== false, progress: c.progress !== false, officers: c.officers !== false,
+        contact: c.contact !== false, footer: c.footer !== false
       },
       stats: { visits: s.visits !== false, audit: s.audit !== false }
     };
@@ -1093,9 +1108,54 @@
       v('ct-contact-email',       c.contact?.email);
       v('ct-contact-address',     c.contact?.address);
       v('ct-contact-address-full',c.contact?.address_full);
+      // 사업 진행 현황
+      progressSteps = Array.isArray(c.progress)
+        ? c.progress.map(s => ({ status: s.status || 'upcoming', title: s.title || '', desc: s.desc || '' }))
+        : [];
+      renderProgressEditor();
+      // 푸터 저작권
+      v('ct-footer-copyright', c.footer?.copyright);
     } catch(e) { showToast('콘텐츠 불러오기 실패: ' + e.message, true); }
   }
   function v(id, val) { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; }
+
+  // ── 사업 진행 현황 편집기 (가변 목록) ─────────────
+  let progressSteps = [];
+  function renderProgressEditor() {
+    const box = document.getElementById('ct-progress-list');
+    if (!box) return;
+    box.innerHTML = progressSteps.map((s, i) => `
+      <div class="form-row" data-pi="${i}" style="align-items:flex-end; gap:8px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+        <div class="field" style="max-width:108px"><label>${i+1}. 상태</label>
+          <select class="finput ct-prog-status">
+            <option value="done">완료</option>
+            <option value="active">진행중</option>
+            <option value="upcoming">예정</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:180px"><label>단계명</label><input class="finput ct-prog-title"/></div>
+        <div class="field"><label>설명</label><input class="finput ct-prog-desc"/></div>
+        <button type="button" class="btn-d" style="margin-bottom:2px;" onclick="removeProgressStep(${i})">삭제</button>
+      </div>`).join('') || '<p style="font-size:13px; color:#94a3b8; margin-bottom:10px;">단계가 없습니다. 아래 버튼으로 추가하세요.</p>';
+    // 값 주입 (속성 인젝션 방지 위해 DOM으로 설정)
+    box.querySelectorAll('[data-pi]').forEach(row => {
+      const i = +row.getAttribute('data-pi');
+      row.querySelector('.ct-prog-status').value = progressSteps[i].status || 'upcoming';
+      row.querySelector('.ct-prog-title').value  = progressSteps[i].title || '';
+      row.querySelector('.ct-prog-desc').value   = progressSteps[i].desc || '';
+    });
+  }
+  function syncProgressFromEditor() {
+    const rows = document.querySelectorAll('#ct-progress-list [data-pi]');
+    progressSteps = Array.from(rows).map(r => ({
+      status: r.querySelector('.ct-prog-status').value,
+      title:  r.querySelector('.ct-prog-title').value.trim(),
+      desc:   r.querySelector('.ct-prog-desc').value.trim()
+    }));
+    return progressSteps;
+  }
+  window.addProgressStep = () => { syncProgressFromEditor(); progressSteps.push({ status:'upcoming', title:'', desc:'' }); renderProgressEditor(); };
+  window.removeProgressStep = (i) => { syncProgressFromEditor(); progressSteps.splice(i, 1); renderProgressEditor(); };
 
   // 홈페이지 내용 변경점 비교 → 상세 텍스트
   const FIELD_LABEL = {
@@ -1105,12 +1165,19 @@
     'greeting.chairman':'조합장 이름','greeting.position':'소속','greeting.p1':'인사말1','greeting.p2':'인사말2','greeting.p3':'인사말3','greeting.p4':'인사말4','greeting.p5':'인사말5','greeting.photo':'조합장 사진',
     'visual.map':'위치도 이미지','visual.render':'조감도 이미지','visual.map_title':'위치 제목','visual.map_desc':'위치 설명','visual.map_list':'위치 목록','visual.render_title':'조감도 제목','visual.render_desc':'조감도 설명','visual.render_list':'조감도 목록',
     'officers.intro_title':'임원소개 제목','officers.intro_desc':'임원소개 문구','officers.chair_quote':'조합장 한마디','officers.auditors':'감사 명단','officers.directors':'이사 명단','officers.note':'임원 안내문',
-    'contact.phone':'전화','contact.hours':'운영시간','contact.email':'이메일','contact.address':'주소','contact.address_full':'주소(상세)'
+    'contact.phone':'전화','contact.hours':'운영시간','contact.email':'이메일','contact.address':'주소','contact.address_full':'주소(상세)',
+    'progress':'사업 진행 현황','footer.copyright':'푸터 저작권','footer.address':'푸터 주소','footer.phone':'푸터 전화','footer.email':'푸터 이메일'
   };
   function diffContent(oldC, newC) {
     if (!oldC) return '(이전 상태 없음 — 전체 저장)';
     const changes = [];
     Object.keys(newC).forEach(sec => {
+      // 배열 섹션(예: progress)은 JSON 비교 후 요약
+      if (Array.isArray(newC[sec])) {
+        const ov = JSON.stringify(oldC[sec] || []), nv = JSON.stringify(newC[sec] || []);
+        if (ov !== nv) changes.push(`▸ ${FIELD_LABEL[sec] || sec}\n   단계 ${(newC[sec]||[]).length}개로 변경됨`);
+        return;
+      }
       const o = oldC[sec] || {}, n = newC[sec] || {};
       Object.keys(n).forEach(k => {
         const ov = (o[k] == null ? '' : String(o[k]));
@@ -1165,10 +1232,14 @@
         email: g('ct-contact-email'), address: g('ct-contact-address'),
         address_full: g('ct-contact-address-full')
       },
+      progress: (syncProgressFromEditor(), progressSteps
+        .map(s => ({ status: s.status || 'upcoming', title: (s.title||'').trim(), desc: (s.desc||'').trim() }))
+        .filter(s => s.title || s.desc)),
       footer: {
         address: g('ct-contact-address-full'),
         phone: g('ct-contact-phone'),
-        email: g('ct-contact-email')
+        email: g('ct-contact-email'),
+        copyright: g('ct-footer-copyright')
       }
     };
     document.getElementById('savingOverlay').classList.add('show');
@@ -1269,7 +1340,8 @@
       const c = p.content || {}, s = p.stats || {};
       setChk('perm-notices', p.notices);
       setChk('perm-c-hero', c.hero); setChk('perm-c-about', c.about); setChk('perm-c-greeting', c.greeting);
-      setChk('perm-c-visual', c.visual); setChk('perm-c-officers', c.officers); setChk('perm-c-contact', c.contact);
+      setChk('perm-c-visual', c.visual); setChk('perm-c-progress', c.progress); setChk('perm-c-officers', c.officers);
+      setChk('perm-c-contact', c.contact); setChk('perm-c-footer', c.footer);
       setChk('perm-s-visits', s.visits); setChk('perm-s-audit', s.audit);
       if (st) st.textContent = '';
     } catch(e) { if (st) st.textContent = '권한 불러오기 실패'; }
@@ -1280,7 +1352,8 @@
       notices: getChk('perm-notices'),
       content: {
         hero: getChk('perm-c-hero'), about: getChk('perm-c-about'), greeting: getChk('perm-c-greeting'),
-        visual: getChk('perm-c-visual'), officers: getChk('perm-c-officers'), contact: getChk('perm-c-contact')
+        visual: getChk('perm-c-visual'), progress: getChk('perm-c-progress'), officers: getChk('perm-c-officers'),
+        contact: getChk('perm-c-contact'), footer: getChk('perm-c-footer')
       },
       stats: { visits: getChk('perm-s-visits'), audit: getChk('perm-s-audit') }
     };
@@ -1293,7 +1366,7 @@
       });
       if (!r.ok) throw new Error(await r.text());
       const on = (b) => b ? 'ON' : 'OFF';
-      const permDetail = `공지사항: ${on(perms.notices)}\n[홈페이지 내용] 히어로:${on(perms.content.hero)} 조합소개:${on(perms.content.about)} 인사말:${on(perms.content.greeting)} 위치·조감도:${on(perms.content.visual)} 임원소개:${on(perms.content.officers)} 문의:${on(perms.content.contact)}\n[통계] 방문통계:${on(perms.stats.visits)} 감사기록:${on(perms.stats.audit)}`;
+      const permDetail = `공지사항: ${on(perms.notices)}\n[홈페이지 내용] 히어로:${on(perms.content.hero)} 조합소개:${on(perms.content.about)} 인사말:${on(perms.content.greeting)} 위치·조감도:${on(perms.content.visual)} 진행현황:${on(perms.content.progress)} 임원소개:${on(perms.content.officers)} 문의:${on(perms.content.contact)} 푸터:${on(perms.content.footer)}\n[통계] 방문통계:${on(perms.stats.visits)} 감사기록:${on(perms.stats.audit)}`;
       logAction('일반 관리자 권한 변경', permDetail);
       showToast('✅ 일반 관리자 권한이 저장되었습니다');
     } catch(e) { showToast('저장 실패: ' + e.message, true); }
