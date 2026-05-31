@@ -1,0 +1,9 @@
+# 로컬 백업 ZIP (저장소에 올리지 않음 — .git 이력이 이미 백업)
+backups/
+
+# 임시 작업 파일
+_*.html
+_*.png
+_*.svg
+*.tmp
+gen-*.ps1
