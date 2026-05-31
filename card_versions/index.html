@@ -39,6 +39,7 @@
   .dl-table a:hover { text-decoration:underline; }
   .dl-foot { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
   .dl-allbtn { background:#0d2461; color:#fff; text-decoration:none; font-size:13px; font-weight:600; padding:10px 18px; border-radius:9px; }
+  button.dl-allbtn { border:none; cursor:pointer; font-family:inherit; }
   .dl-allbtn.alt { background:#eef2f9; color:#0d2461; }
   .dl-allbtn:hover { opacity:.9; }
   .dl-note { font-size:11.5px; color:#94a3b8; margin-top:12px; line-height:1.6; }
@@ -56,8 +57,18 @@
       <thead><tr><th>구분</th><th>SVG (벡터·일러스트)</th><th>PNG (포토샵)</th><th>JPG (고해상도)</th><th>PDF (인쇄용)</th></tr></thead>
       <tbody id="dlBody"></tbody>
     </table>
-    <div class="dl-foot">
-      <a class="dl-allbtn" href="../cards.html" target="_blank">🖨️ 전체 인쇄용 페이지 (Ctrl+P)</a>
+    <div style="margin-top:18px; padding-top:16px; border-top:1px dashed #e2e8f0;">
+      <div style="font-size:13px; font-weight:700; color:#0d2461; margin-bottom:10px;">📦 전체(8종) 한 번에 받기 — 포맷 선택</div>
+      <div class="dl-foot" style="margin-top:0;">
+        <button class="dl-allbtn" onclick="downloadAll('svg')">⬇ SVG 전체</button>
+        <button class="dl-allbtn" onclick="downloadAll('png')">⬇ PNG 전체</button>
+        <button class="dl-allbtn" onclick="downloadAll('jpg')">⬇ JPG 전체</button>
+        <button class="dl-allbtn" onclick="downloadAll('pdf')">⬇ PDF 전체</button>
+      </div>
+      <p class="dl-note" style="margin-top:8px;">※ 선택한 포맷의 8개 파일이 순서대로 자동 저장됩니다. 브라우저가 "여러 파일 다운로드"를 물으면 <b>허용</b>을 눌러주세요.</p>
+    </div>
+    <div class="dl-foot" style="margin-top:16px; padding-top:16px; border-top:1px dashed #e2e8f0;">
+      <a class="dl-allbtn alt" href="../cards.html" target="_blank">🖨️ 전체 인쇄용 페이지 (Ctrl+P)</a>
       <a class="dl-allbtn alt" href="v11_files/README_명함업체.txt" target="_blank">📄 명함업체 안내문</a>
     </div>
     <p class="dl-note">※ <b>SVG</b>=일러스트레이터 등에서 자유 편집 가능한 벡터 원본 · <b>PNG</b>=투명/고해상 포토샵 작업용 · <b>JPG</b>=고해상 이미지 · <b>PDF</b>=90×50mm 인쇄용<br>※ SVG는 서체(Jua·Noto Sans KR) 설치 후 열거나, 업체에서 글자를 윤곽선(outline)으로 변환해 사용하세요 · 인쇄 시 도련 1~2mm 추가 · 색상 CMYK 교정 권장</p>
@@ -79,6 +90,20 @@
     ['이사 · 한영택', 'front_7_7_dir_hanyoungtaek'],
     ['공통 뒷면',     'back_common']
   ];
+  // 선택 포맷 전체(8종) 순차 다운로드
+  window.downloadAll = function(ext) {
+    DL.forEach(([label, f], i) => {
+      setTimeout(() => {
+        const a = document.createElement('a');
+        a.href = `v11_files/${f}.${ext}`;
+        a.download = `${f}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }, i * 450);
+    });
+  };
+
   document.getElementById('dlBody').innerHTML = DL.map(([label, f]) => `
     <tr>
       <td>${label}</td>
