@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <title>가리봉2구역 CI (Corporate Identity)</title>
@@ -15,6 +16,7 @@
     font-family: 'Noto Sans KR', sans-serif;
     background: #f5f7fa;
     padding: 40px;
+    overflow-x: hidden;
   }
 
   h1 { font-size: 32px; font-weight: 900; margin-bottom: 8px; color: #0d2461; letter-spacing: -0.5px; }
@@ -59,7 +61,20 @@
   .meaning-hero { background:#0d2461; color:#fff; border-radius:14px; padding:40px; margin-bottom:24px; display:flex; align-items:center; gap:36px; }
   .meaning-symbol { width:150px; height:150px; flex-shrink:0; filter:drop-shadow(0 6px 16px rgba(0,0,0,.3)); }
   .meaning-text { flex:1; }
-  @media (max-width:640px){ .meaning-hero{ flex-direction:column; text-align:center; padding:32px 24px; gap:24px; } .meaning-symbol{ width:128px; height:128px; } }
+  @media (max-width:640px){
+    body { padding: 18px; }
+    h1 { font-size: 25px; }
+    .subtitle { font-size: 14px; margin-bottom: 28px; }
+    .section { margin-bottom: 40px; }
+    .section h2 { font-size: 18px; margin-bottom: 18px; }
+    .grid { grid-template-columns: 1fr; gap: 16px; }
+    .card { padding: 20px; }
+    .meaning-hero { flex-direction:column; text-align:center; padding:30px 22px; gap:22px; }
+    .meaning-symbol { width:128px; height:128px; }
+    .meaning-text p:first-child { font-size: clamp(14px, 4vw, 18px) !important; }
+    .dl-grid { flex-direction: column; }
+    .dl-btn { justify-content: center; }
+  }
 </style>
 </head>
 <body>
