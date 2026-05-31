@@ -553,13 +553,28 @@
         <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">로그인뿐 아니라 공지·내용 수정, 사진 업로드, 비밀번호·권한 변경 등 <strong>모든 작업</strong>을 일시·계정·작업·기기·IP와 함께 영구 기록합니다. 보안을 위해 삭제할 수 없습니다.</p>
         <div id="auditSummary" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;"></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
-          <input id="auditSearch" class="finput" style="flex:1; min-width:160px;" placeholder="🔍 IP·계정·날짜·기기 검색" oninput="renderAuditFiltered()"/>
-          <select id="auditFilter" class="finput" style="max-width:140px;" onchange="renderAuditFiltered()">
-            <option value="all">전체</option>
-            <option value="ok">성공만</option>
-            <option value="fail">실패만</option>
-            <option value="super">슈퍼 관리자</option>
-            <option value="staff">일반 관리자</option>
+          <input id="auditSearch" class="finput" style="flex:1; min-width:160px;" placeholder="🔍 작업·IP·계정·날짜·기기 검색" oninput="renderAuditFiltered()"/>
+          <select id="auditFilter" class="finput" style="max-width:200px;" onchange="renderAuditFiltered()">
+            <optgroup label="기본">
+              <option value="all">전체 보기</option>
+              <option value="login">로그인 기록</option>
+            </optgroup>
+            <optgroup label="🔐 보안 이벤트">
+              <option value="sec">⚠ 보안 이벤트 전체</option>
+              <option value="loginfail">로그인 실패</option>
+              <option value="foreign">해외 접속</option>
+              <option value="pw">비밀번호 변경</option>
+              <option value="perm">권한 변경</option>
+            </optgroup>
+            <optgroup label="작업 종류">
+              <option value="notice">공지 작업</option>
+              <option value="content">홈페이지 내용</option>
+              <option value="image">이미지 업로드</option>
+            </optgroup>
+            <optgroup label="계정">
+              <option value="super">슈퍼 관리자</option>
+              <option value="staff">일반 관리자</option>
+            </optgroup>
           </select>
         </div>
         <div id="auditList" style="font-size:13px;">기록 없음</div>
@@ -1604,38 +1619,67 @@
     }
   }
 
-  function statBox(label, val, color) {
-    return `<div style="background:${color}1a; border:1px solid ${color}40; color:${color}; border-radius:9px; padding:8px 14px; text-align:center; min-width:84px;">
+  // 작업 분류 / 보안 판정
+  function isForeign(e) { return !!(e.country && e.country !== 'KR'); }
+  function actionCat(e) {
+    const a = e.action || '';
+    if (a.indexOf('로그인') === 0)       return 'login';
+    if (a.indexOf('공지') === 0)         return 'notice';
+    if (a.indexOf('홈페이지 내용') === 0) return 'content';
+    if (a.indexOf('업로드') !== -1)      return 'image';
+    if (a.indexOf('비밀번호') !== -1)    return 'pw';
+    if (a.indexOf('권한') !== -1)        return 'perm';
+    return 'other';
+  }
+  function isSecurity(e) { return (!e.ok) || isForeign(e) || actionCat(e) === 'pw' || actionCat(e) === 'perm'; }
+
+  function statBox(label, val, color, filterVal) {
+    const click = filterVal ? `onclick="auditQuickFilter('${filterVal}')" style="cursor:pointer;"` : '';
+    return `<div ${click} title="${filterVal?'클릭하면 이 항목만 보기':''}" style="background:${color}1a; border:1px solid ${color}40; color:${color}; border-radius:9px; padding:8px 14px; text-align:center; min-width:84px; ${filterVal?'cursor:pointer;':''}">
       <div style="font-size:11px; opacity:.8;">${label}</div><div style="font-size:19px; font-weight:900;">${val}</div></div>`;
   }
+  window.auditQuickFilter = (v) => {
+    const sel = document.getElementById('auditFilter'); if (sel) sel.value = v;
+    renderAuditFiltered();
+  };
   window.renderAuditFiltered = () => {
     const el = document.getElementById('auditList');
     const more = document.getElementById('auditMore');
     const sum = document.getElementById('auditSummary');
     const roleName = { super:'슈퍼 관리자', staff:'일반 관리자', '-':'—' };
-    // 통계 요약 (전체 기준)
+    // 통계 요약 (전체 기준) — 보안 중심, 클릭 시 필터
     const total = auditData.length;
-    const fails = auditData.filter(e => !e.ok).length;
-    const supN  = auditData.filter(e => e.role === 'super').length;
     const loginFails = auditData.filter(e => !e.ok).length;
-    sum.innerHTML = statBox('전체 기록', total.toLocaleString(), '#0d2461')
-                  + statBox('정상 작업', (total-fails).toLocaleString(), '#16a34a')
-                  + statBox('로그인 실패', loginFails.toLocaleString(), '#dc2626')
-                  + statBox('슈퍼 작업', supN.toLocaleString(), '#2563eb');
+    const foreignN   = auditData.filter(isForeign).length;
+    const secN       = auditData.filter(isSecurity).length;
+    sum.innerHTML = statBox('전체 기록', total.toLocaleString(), '#0d2461', 'all')
+                  + statBox('🔐 보안 이벤트', secN.toLocaleString(), '#b45309', 'sec')
+                  + statBox('로그인 실패', loginFails.toLocaleString(), '#dc2626', 'loginfail')
+                  + statBox('해외 접속', foreignN.toLocaleString(), '#dc2626', 'foreign');
     if (!total) { el.innerHTML = '기록 없음'; more.innerHTML=''; return; }
 
     // 필터
     const q = (document.getElementById('auditSearch').value || '').toLowerCase().trim();
     const f = document.getElementById('auditFilter').value;
     let rows = auditData.filter(e => {
-      if (f === 'ok' && !e.ok) return false;
-      if (f === 'fail' && e.ok) return false;
-      if (f === 'super' && e.role !== 'super') return false;
-      if (f === 'staff' && e.role !== 'staff') return false;
+      const cat = actionCat(e);
+      switch (f) {
+        case 'login':     if (cat !== 'login') return false; break;
+        case 'sec':       if (!isSecurity(e)) return false; break;
+        case 'loginfail': if (e.ok) return false; break;
+        case 'foreign':   if (!isForeign(e)) return false; break;
+        case 'pw':        if (cat !== 'pw') return false; break;
+        case 'perm':      if (cat !== 'perm') return false; break;
+        case 'notice':    if (cat !== 'notice') return false; break;
+        case 'content':   if (cat !== 'content') return false; break;
+        case 'image':     if (cat !== 'image') return false; break;
+        case 'super':     if (e.role !== 'super') return false; break;
+        case 'staff':     if (e.role !== 'staff') return false; break;
+      }
       if (q) {
         const d = new Date(e.ts);
         const ds = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-        const hay = [e.ip, e.city, e.country, e.device, e.action, roleName[e.role]||e.role, ds].join(' ').toLowerCase();
+        const hay = [e.ip, e.city, e.country, e.device, e.action, e.detail, roleName[e.role]||e.role, ds].join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -1644,16 +1688,20 @@
 
     window._ad = [];   // 상세내역 저장 (클릭 조회용)
     el.innerHTML = `<div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">☁️ 중앙 기록 · 검색결과 ${rows.length.toLocaleString()}건 · <span style="color:#cbd5e1;">작업에 마우스를 올리거나 클릭하면 상세 내용을 볼 수 있습니다</span></div>
-      <div style="overflow-x:auto; max-height:520px; overflow-y:auto;">
-      <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:660px;">
-        <thead><tr style="text-align:left; color:#64748b; border-bottom:2px solid #e2e8f0; position:sticky; top:0; background:#fff;">
-          <th style="padding:8px 10px;">#</th>
-          <th style="padding:8px 10px;">일시</th>
-          <th style="padding:8px 10px;">계정</th>
-          <th style="padding:8px 10px;">작업</th>
-          <th style="padding:8px 10px;">결과</th>
-          <th style="padding:8px 10px;">기기</th>
-          <th style="padding:8px 10px;">접속 위치 / IP</th>
+      <div style="overflow-x:auto; max-height:560px; overflow-y:auto; border:1px solid #eef2f7; border-radius:10px;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px; min-width:720px; table-layout:fixed;">
+        <colgroup>
+          <col style="width:38px"><col style="width:118px"><col style="width:80px">
+          <col style="width:auto"><col style="width:58px"><col style="width:150px"><col style="width:190px">
+        </colgroup>
+        <thead><tr style="text-align:left; color:#475569; border-bottom:2px solid #cbd5e1; position:sticky; top:0; background:#f8fafc; font-size:12px;">
+          <th style="padding:10px 10px;">#</th>
+          <th style="padding:10px 10px;">일시</th>
+          <th style="padding:10px 10px;">계정</th>
+          <th style="padding:10px 10px;">작업 (클릭=상세)</th>
+          <th style="padding:10px 10px;">결과</th>
+          <th style="padding:10px 10px;">기기</th>
+          <th style="padding:10px 10px;">접속 위치 / IP</th>
         </tr></thead>
         <tbody>
         ${shown.map((e, i) => {
@@ -1666,24 +1714,34 @@
           const locPill = loc
             ? `<span style="display:inline-block; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; ${foreign?'background:#fef2f2; color:#dc2626;':'background:#eef2f7; color:#475569;'}">${foreign?'⚠ 해외 · ':'📍 '}${loc}</span>`
             : '<span style="font-size:11px; color:#cbd5e1;">위치 미확인</span>';
-          const ipLine = `<span title="${ipFull}" style="font-size:11px; color:#94a3b8; font-family:monospace;">${shortIp(ipFull)}</span>`;
+          const ipLine = `<span title="${ipFull}" style="font-size:11px; color:#94a3b8; font-family:monospace; word-break:break-all;">${shortIp(ipFull)}</span>`;
           const device = auditClean(e.device) || '-';
           const action = auditClean(e.action) || '로그인';
           const rawDetail = (e.detail || '').trim();
           const di = window._ad.push(rawDetail) - 1;
           const titleAttr = rawDetail ? rawDetail.replace(/&/g,'&amp;').replace(/"/g,'&quot;') : '';
           const actionCell = rawDetail
-            ? `<span title="${titleAttr}" onclick="showAuditDetail(${di})" style="cursor:pointer; border-bottom:1px dotted #94a3b8;">${action} <span style="font-size:11px;">🔍</span></span>`
-            : action;
-          const rowBg = e.ok ? '' : 'background:#fef2f2;';
-          return `<tr style="border-bottom:1px solid #f1f5f9; ${rowBg}">
-            <td style="padding:8px 10px; color:#cbd5e1;">${i+1}</td>
-            <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${t}</td>
-            <td style="padding:8px 10px; color:#334155; white-space:nowrap;">${auditClean(roleName[e.role]||e.role)}</td>
-            <td style="padding:8px 10px; color:#0d2461; font-weight:600;">${actionCell}</td>
-            <td style="padding:8px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'성공':'실패'}</td>
-            <td style="padding:8px 10px; color:#475569; white-space:nowrap;">${device}</td>
-            <td style="padding:8px 10px;"><div>${locPill}</div><div style="margin-top:3px;">${ipLine}</div></td>
+            ? `<span title="${titleAttr}" onclick="showAuditDetail(${di})" style="cursor:pointer; color:#0d2461; border-bottom:1px dotted #2563eb;">${action} <span style="font-size:11px;">🔍</span></span>`
+            : `<span style="color:#475569;">${action}</span>`;
+          // 계정 배지
+          const rn = roleName[e.role] || e.role;
+          const roleBadge = e.role === 'super'
+            ? `<span style="font-size:11px; font-weight:700; padding:2px 7px; border-radius:8px; background:#e0e7ff; color:#1e40af;">슈퍼</span>`
+            : (e.role === 'staff'
+              ? `<span style="font-size:11px; font-weight:700; padding:2px 7px; border-radius:8px; background:#f1f5f9; color:#475569;">일반</span>`
+              : `<span style="font-size:11px; color:#cbd5e1;">—</span>`);
+          // 행 강조: 로그인 실패=빨강 좌측선, 해외=주황 좌측선
+          let accent = '';
+          if (!e.ok)        accent = 'box-shadow: inset 4px 0 0 #dc2626; background:#fef2f2;';
+          else if (foreign) accent = 'box-shadow: inset 4px 0 0 #f59e0b; background:#fffbeb;';
+          return `<tr style="border-bottom:1px solid #f1f5f9; ${accent}">
+            <td style="padding:9px 10px; color:#cbd5e1;">${i+1}</td>
+            <td style="padding:9px 10px; color:#334155; white-space:nowrap; font-size:12px;">${t}</td>
+            <td style="padding:9px 10px;">${roleBadge}</td>
+            <td style="padding:9px 10px; font-weight:600; word-break:break-word; line-height:1.5;">${actionCell}</td>
+            <td style="padding:9px 10px; font-weight:700; color:${e.ok?'#16a34a':'#dc2626'};">${e.ok?'✔':'✖'}</td>
+            <td style="padding:9px 10px; color:#475569; font-size:12px; word-break:break-word; line-height:1.4;">${device}</td>
+            <td style="padding:9px 10px;"><div>${locPill}</div><div style="margin-top:3px;">${ipLine}</div></td>
           </tr>`;
         }).join('')}
         </tbody>
