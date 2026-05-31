@@ -176,7 +176,7 @@
   <!-- 푸터 -->
   <footer class="footer">
     <div class="footer-bottom">
-      <div class="container">© 2025 가리봉2구역재개발정비사업조합. All rights reserved.</div>
+      <div class="container" id="o-footer-copyright">© 2025 가리봉2구역재개발정비사업조합. All rights reserved.</div>
     </div>
   </footer>
 
@@ -232,6 +232,7 @@
         if (c.officers?.intro_title) document.getElementById('o-intro-title').textContent = c.officers.intro_title;
         if (c.officers?.intro_desc)  document.getElementById('o-intro-desc').textContent  = c.officers.intro_desc;
         if (c.officers?.note)        document.getElementById('o-note').textContent         = c.officers.note;
+        if (c.footer?.copyright)     document.getElementById('o-footer-copyright').textContent = c.footer.copyright;
         if (c.officers?.auditors)  auditors  = parseList(c.officers.auditors);
         if (c.officers?.directors) directors = parseList(c.officers.directors);
         renderOfficers();

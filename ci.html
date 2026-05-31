@@ -545,8 +545,16 @@
 </div>
 
 <div style="margin-top: 56px; padding-top: 24px; border-top: 2px solid #e0e4eb; color: #7a8290; font-size: 13px; text-align: center;">
-  ✨ 가리봉2구역 공식 CI 시스템 © 2026
+  <span id="ci-footer-copyright">© 2025 가리봉2구역재개발정비사업조합. All rights reserved.</span>
 </div>
+
+<script>
+  // 푸터 저작권을 홈페이지(content.json)와 동기화
+  fetch('./content.json?t=' + Date.now())
+    .then(r => r.json())
+    .then(c => { if (c.footer && c.footer.copyright) document.getElementById('ci-footer-copyright').textContent = c.footer.copyright; })
+    .catch(function(){});
+</script>
 
 </body>
 </html>
