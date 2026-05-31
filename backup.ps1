@@ -2,7 +2,9 @@
 # Saves a timestamped ZIP of the whole project (source/images/content) into backups\.
 # Excludes the .git folder and backups folder itself (.git already keeps full history).
 $ErrorActionPreference = 'Stop'
-$root = 'C:\Users\duels\Desktop\garibong2-site'
+# 스크립트 위치 = 저장소 루트 (어느 컴퓨터에서 클론해도 자동 인식)
+$root = $PSScriptRoot
+if (-not $root) { $root = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $bdir = Join-Path $root 'backups'
 New-Item -ItemType Directory -Force $bdir | Out-Null
 

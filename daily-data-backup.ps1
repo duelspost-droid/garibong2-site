@@ -7,7 +7,8 @@
 $ErrorActionPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$root    = 'C:\Users\duels\Desktop\garibong2-site'
+$root    = $PSScriptRoot
+if (-not $root) { $root = Split-Path -Parent $MyInvocation.MyCommand.Path }
 $dataDir = Join-Path $root 'backups\data'
 New-Item -ItemType Directory -Force $dataDir | Out-Null
 
