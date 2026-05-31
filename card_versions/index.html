@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>명함 시안 갤러리 — 가리봉2구역</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans KR','Malgun Gothic',sans-serif; background:#eef0f5; padding:36px 28px; color:#1a2a3a; }
+  h1 { font-size:24px; color:#0d2461; margin-bottom:6px; }
+  .sub { color:#64748b; font-size:13.5px; margin-bottom:28px; line-height:1.7; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:22px; }
+  .ver {
+    background:#fff; border:1px solid #d9dfea; border-radius:14px; overflow:hidden;
+    box-shadow:0 2px 10px rgba(13,36,97,.06); transition:.18s; display:flex; flex-direction:column;
+  }
+  .ver:hover { transform:translateY(-3px); box-shadow:0 10px 26px rgba(13,36,97,.13); border-color:#b9c4dc; }
+  .ver.latest { border:2px solid #0d2461; }
+  .thumb { position:relative; height:210px; background:#fff; border-bottom:1px solid #eef2f7; overflow:hidden; }
+  .thumb iframe { position:absolute; top:0; left:0; width:1000px; height:840px; border:0; transform:scale(0.42); transform-origin:top left; pointer-events:none; }
+  .badge-latest { position:absolute; top:10px; right:10px; background:#0d2461; color:#fff; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; z-index:2; }
+  .meta { padding:16px 18px; }
+  .vnum { display:flex; align-items:center; gap:8px; }
+  .vnum .n { font-family:'Jua',sans-serif; font-size:26px; color:#0d2461; }
+  .vnum .date { font-size:12px; color:#94a3b8; margin-left:auto; }
+  .desc { font-size:13px; color:#475569; line-height:1.6; margin-top:8px; min-height:38px; }
+  .open { display:inline-block; margin-top:12px; background:#0d2461; color:#fff; text-decoration:none; font-size:13px; font-weight:600; padding:9px 18px; border-radius:9px; }
+  .open:hover { background:#1e40af; }
+  .hint { margin-top:30px; color:#94a3b8; font-size:12px; line-height:1.7; }
+  /* 다운로드 패널 */
+  .dl-panel { background:#fff; border:1px solid #d9dfea; border-radius:14px; padding:22px 24px; margin-bottom:30px; box-shadow:0 2px 10px rgba(13,36,97,.06); }
+  .dl-head { font-size:17px; font-weight:800; color:#0d2461; margin-bottom:14px; }
+  .dl-head span { font-size:12px; font-weight:500; color:#94a3b8; margin-left:8px; }
+  .dl-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  .dl-table th { text-align:left; color:#64748b; font-size:12px; border-bottom:2px solid #e2e8f0; padding:8px 10px; }
+  .dl-table td { padding:8px 10px; border-bottom:1px solid #f1f5f9; color:#334155; }
+  .dl-table a { color:#1e40af; text-decoration:none; font-weight:600; }
+  .dl-table a:hover { text-decoration:underline; }
+  .dl-foot { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .dl-allbtn { background:#0d2461; color:#fff; text-decoration:none; font-size:13px; font-weight:600; padding:10px 18px; border-radius:9px; }
+  .dl-allbtn.alt { background:#eef2f9; color:#0d2461; }
+  .dl-allbtn:hover { opacity:.9; }
+  .dl-note { font-size:11.5px; color:#94a3b8; margin-top:12px; line-height:1.6; }
+  .gal-h2 { font-size:16px; color:#475569; margin:6px 0 16px; }
+</style>
+</head>
+<body>
+  <h1>🪪 명함 시안 갤러리</h1>
+  <p class="sub">가리봉2구역재개발정비사업조합 명함 디자인 버전 기록입니다.<br>새 시안이 나올 때마다 번호(v#)가 추가되며, 과거 시안도 언제든 열어볼 수 있습니다.</p>
+
+  <!-- 명함업체용 다운로드 -->
+  <div class="dl-panel">
+    <div class="dl-head">📥 명함업체용 다운로드 <span>최신 확정안 v11 · 90×50mm 양면</span></div>
+    <table class="dl-table">
+      <thead><tr><th>구분</th><th>JPG (고해상도)</th><th>PDF (인쇄용)</th></tr></thead>
+      <tbody id="dlBody"></tbody>
+    </table>
+    <div class="dl-foot">
+      <a class="dl-allbtn" href="../cards.html" target="_blank">🖨️ 전체 인쇄용 페이지 (Ctrl+P)</a>
+      <a class="dl-allbtn alt" href="v11_files/README_명함업체.txt" target="_blank">📄 명함업체 안내문</a>
+    </div>
+    <p class="dl-note">※ 인쇄 시 도련(여백) 1~2mm 추가 권장 · 서체: Jua / Noto Sans KR (무료) · 색상 CMYK 교정 권장</p>
+  </div>
+
+  <h2 class="gal-h2">🗂️ 시안 버전 기록</h2>
+  <div class="grid" id="grid"></div>
+  <p class="hint">💡 새 시안 요청 시 "v2처럼 해줘", "v1으로 되돌려줘" 등 번호로 소통하세요. 각 시안은 <code>card_versions/v#.html</code> 로 저장됩니다.</p>
+
+<script>
+  // ───────── 명함업체 다운로드 (v11) ─────────
+  const DL = [
+    ['감사 · 신수호', 'front_1_1_audit_sinsuho'],
+    ['이사 · 김명식', 'front_2_2_dir_kimmyungsik'],
+    ['이사 · 서훈',   'front_3_3_dir_seohun'],
+    ['이사 · 설희경', 'front_4_4_dir_seolheekyung'],
+    ['이사 · 김충식', 'front_5_5_dir_kimchungsik'],
+    ['이사 · 박은경', 'front_6_6_dir_parkeunkyung'],
+    ['이사 · 한영택', 'front_7_7_dir_hanyoungtaek'],
+    ['공통 뒷면',     'back_common']
+  ];
+  document.getElementById('dlBody').innerHTML = DL.map(([label, f]) => `
+    <tr>
+      <td>${label}</td>
+      <td><a href="v11_files/${f}.jpg" download>⬇ JPG</a></td>
+      <td><a href="v11_files/${f}.pdf" download>⬇ PDF</a></td>
+    </tr>`).join('');
+
+  // ───────── 시안 목록 (최신이 위로) ─────────
+  const VERSIONS = [
+    {
+      n: 11,
+      date: '2026-05-31',
+      desc: '명암 위계 적용 — 외곽선 굵고 진하게(실루엣), 내부 층선 가늘고 옅은 회청색(디테일), 측면 음영 강조(입체), 윗면 살짝 음영. 선이 명확해짐.',
+      file: 'v11.html'
+    },
+    {
+      n: 10,
+      date: '2026-05-31',
+      desc: '좌우 균형 — 그래픽과 인물정보를 균등 간격(space-evenly)으로 재배치. 좌측 여백 = 중앙 간격 = 우측 여백으로 대칭 균형.',
+      file: 'v10.html'
+    },
+    {
+      n: 9,
+      date: '2026-05-31',
+      desc: '그래픽 더 축소(37%→30%) + 캡션 글씨 축소(폭 맞춤) + 이름·연락처를 오른쪽으로 정렬하여 전체 좌(그림)·우(정보) 구도 균형.',
+      file: 'v9.html'
+    },
+    {
+      n: 8,
+      date: '2026-05-31',
+      desc: '그래픽 크기 축소 — 그래픽 영역 폭 46%→37%로 줄여 이전 버전 정도의 크기로. 캡션도 함께 축소되어 좌우 정렬 유지.',
+      file: 'v8.html'
+    },
+    {
+      n: 7,
+      date: '2026-05-31',
+      desc: '일체감 해결 — 그래픽 viewBox를 그림에 딱 맞게 잘라 폭을 꽉 채움(좌측 쏠림 해소). 캡션을 그래픽 폭에 맞춰 바로 아래 정렬.',
+      file: 'v7.html'
+    },
+    {
+      n: 6,
+      date: '2026-05-31',
+      desc: '캡션 정리 — 골드 구분선 제거, 두 줄 같은 폰트·크기(네이비)로 통일, 그림 폭에 맞춰 자간 정렬. 건물 안테나의 주황 비콘 점 제거.',
+      file: 'v6.html'
+    },
+    {
+      n: 5,
+      date: '2026-05-31',
+      desc: '캡션 2줄화 — "G밸리 직주근접"(보조·회색) + "서남권 최고 랜드마크"(강조·네이비), 골드 구분선으로 그래픽과 일체감.',
+      file: 'v5.html'
+    },
+    {
+      n: 4,
+      date: '2026-05-31',
+      desc: '태양 위치 자연스럽게(우측 하늘) + 첨탑 십자가 제거(안테나·골드 비콘) + 건물 빈틈없는 랜드마크 클러스터 재배치 + 하단 "서남권 최고의 랜드마크" 캡션.',
+      file: 'v4.html'
+    },
+    {
+      n: 3,
+      date: '2026-05-31',
+      desc: '조합명 확대(중심 강조) + 좌하단을 단일 초고층 랜드마크 타워(첨탑·크라운·입체)로 재설계. "서남권 최고의 랜드마크" 느낌.',
+      file: 'v3.html'
+    },
+    {
+      n: 2,
+      date: '2026-05-31',
+      desc: '배치 개선: 제목 비례 축소 + 구분선, 그래픽과 이름·연락처를 같은 수직 중앙선에 정렬하여 가운데 여백 해소.',
+      file: 'v2.html'
+    },
+    {
+      n: 1,
+      date: '2026-05-31',
+      desc: '아이소메트릭 단지(앞뒤 3개 동) + 심볼의 떠오르는 태양(골드). "새벽이 밝아오는 가리봉" 정체성 결합.',
+      file: 'v1.html'
+    }
+  ];
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = VERSIONS.map((v, i) => `
+    <div class="ver ${i===0?'latest':''}">
+      <div class="thumb">
+        ${i===0 ? '<span class="badge-latest">최신</span>' : ''}
+        <iframe src="${v.file}" scrolling="no" loading="lazy"></iframe>
+      </div>
+      <div class="meta">
+        <div class="vnum">
+          <span class="n">v${v.n}</span>
+          <span class="date">${v.date}</span>
+        </div>
+        <div class="desc">${v.desc}</div>
+        <a class="open" href="${v.file}" target="_blank">전체 보기 →</a>
+      </div>
+    </div>`).join('');
+</script>
+</body>
+</html>
