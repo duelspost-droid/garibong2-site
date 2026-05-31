@@ -9,12 +9,13 @@
   <title>공지사항 관리 — 가리봉2구역재개발정비사업조합</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { max-width: 100%; overflow-x: hidden; }
     body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #f1f5f9; color: #1e293b; }
 
     /* ── 로그인 ── */
     .login-wrap {
       min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #0d2461 0%, #1e40af 100%);
+      background: linear-gradient(135deg, #0d2461 0%, #1e40af 100%); padding: 20px;
     }
     .login-box {
       background: #fff; border-radius: 20px; padding: 52px 44px;
@@ -201,12 +202,13 @@
 
     /* ── 모바일 반응형 ── */
     @media (max-width: 640px) {
-      .admin-header { padding: 0 14px; height: 56px; }
-      .admin-header h1 { font-size: 13px; }
-      .admin-header .user-chip, #roleBadge { font-size: 11px; padding: 3px 8px; }
-      .admin-header-left { gap: 8px; }
-      .head-right { gap: 8px; }
-      .head-right a { font-size: 12px; }
+      .admin-header { padding: 0 12px; height: 52px; }
+      .admin-header h1 { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .admin-header .user-chip, #roleBadge { font-size: 10px; padding: 2px 7px; margin-left: 6px !important; }
+      .admin-header-left { gap: 6px; min-width: 0; flex: 1; }
+      .head-right { gap: 12px; flex-shrink: 0; }
+      .head-right a { font-size: 18px; line-height: 1; }
+      .head-right a .hr-lbl { display: none; }   /* 모바일: 아이콘만 */
       .btn-logout { padding: 6px 10px; font-size: 11px; }
 
       .admin-body { padding: 18px 12px; }
@@ -307,8 +309,8 @@
       <span id="roleBadge" style="margin-left:10px; font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; vertical-align:middle;"></span>
     </div>
     <div class="head-right">
-      <a href="card_versions/index.html" target="_blank">🪪 명함 시안</a>
-      <a href="index.html" target="_blank">← 홈페이지</a>
+      <a href="card_versions/index.html" target="_blank">🪪<span class="hr-lbl"> 명함 시안</span></a>
+      <a href="index.html" target="_blank">←<span class="hr-lbl"> 홈페이지</span></a>
       <button class="btn-logout" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
