@@ -487,26 +487,51 @@ header.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.09); }
 .ac-wide p { font-size: var(--fs-base); font-weight: 400; color: var(--gray600); line-height: 1.85; }
 
 /* ════════════════════════════════════════════════════
-   EXPLORE (CI / 임원 요약 카드)
+   EXPLORE (CI 의미 패널 / 임원 소개)
    ════════════════════════════════════════════════════ */
-.explore-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.explore-card {
-  display: flex; flex-direction: column; align-items: flex-start;
-  background: #fff; border: 1px solid var(--gray100); border-radius: var(--r);
-  padding: 32px; text-decoration: none; transition: .18s;
-  box-shadow: 0 2px 16px rgba(13,36,97,.05);
-}
-.explore-card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(13,36,97,.12); border-color: #c7d2e8; }
-.explore-ic {
-  width: 72px; height: 72px; border-radius: 18px; background: var(--gray50);
-  display: flex; align-items: center; justify-content: center; font-size: 34px; margin-bottom: 18px;
-}
-.explore-ic img { width: 58px; height: 58px; }
-.explore-card h3 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 10px; }
-.explore-card p  { font-size: var(--fs-base); color: var(--gray600); line-height: 1.7; margin-bottom: 18px; flex: 1; }
 .explore-link { font-size: 14px; font-weight: 700; color: #2563eb; }
-.explore-card:hover .explore-link { text-decoration: underline; }
-@media (max-width: 640px) { .explore-grid { grid-template-columns: 1fr; } }
+
+/* CI — 담긴 의미 반영 네이비 패널 */
+.ci-feature {
+  display: grid; grid-template-columns: 180px 1fr; gap: 36px; align-items: center;
+  background: linear-gradient(135deg, #1e40af 0%, #0d2461 100%);
+  border-radius: var(--r); padding: 40px; text-decoration: none;
+  box-shadow: 0 10px 30px rgba(13,36,97,.18); transition: .18s; margin-bottom: 22px;
+}
+.ci-feature:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(13,36,97,.26); }
+.ci-sym { width: 180px; height: 180px; }
+.ci-sym svg { width: 100%; height: 100%; display: block; }
+.ci-slogan { font-size: clamp(19px, 2.4vw, 25px); font-weight: 800; color: #fff; letter-spacing: -.3px; line-height: 1.45; margin-bottom: 10px; }
+.ci-desc { font-size: var(--fs-base); line-height: 1.8; color: rgba(255,255,255,.82); margin-bottom: 16px; }
+.ci-meanings { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 18px; }
+.ci-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #e8eefb;
+}
+.ci-link { color: #fcd34d; }
+.ci-feature:hover .ci-link { text-decoration: underline; }
+
+/* 임원 소개 카드 */
+.officer-feature {
+  display: flex; align-items: center; gap: 26px;
+  background: #fff; border: 1px solid var(--gray100); border-radius: var(--r);
+  padding: 30px 36px; text-decoration: none; box-shadow: 0 2px 16px rgba(13,36,97,.05); transition: .18s;
+}
+.officer-feature:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(13,36,97,.12); border-color: #c7d2e8; }
+.of-ic {
+  width: 84px; height: 84px; flex-shrink: 0; border-radius: 22px; background: var(--gray50);
+  display: flex; align-items: center; justify-content: center; font-size: 40px;
+}
+.officer-feature h3 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.officer-feature p { font-size: var(--fs-base); color: var(--gray600); line-height: 1.7; margin-bottom: 12px; }
+
+@media (max-width: 640px) {
+  .ci-feature { grid-template-columns: 1fr; text-align: center; gap: 20px; padding: 30px 22px; }
+  .ci-sym { width: 140px; height: 140px; margin: 0 auto; }
+  .ci-meanings { justify-content: center; }
+  .officer-feature { flex-direction: column; text-align: center; gap: 16px; padding: 26px 22px; }
+}
 
 /* ════════════════════════════════════════════════════
    NOTICE
