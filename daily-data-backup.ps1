@@ -38,8 +38,12 @@ if (-not (Test-Path $csv)) { 'date,total,today' | Out-File $csv -Encoding utf8 }
 Write-Output "  [ok] visits.csv (total=$total today=$dayCnt)"
 
 # 3) Audit log + perms (sensitive) - only if admin password file present
-$pwFile = Join-Path $root 'backups\.worker_pw.txt'
-if (Test-Path $pwFile) {
+# (메모장이 앞의 점을 빼는 경우가 있어 두 이름 모두 허용)
+$pwFile = @(
+  (Join-Path $root 'backups\.worker_pw.txt'),
+  (Join-Path $root 'backups\worker_pw.txt')
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+if ($pwFile) {
   $pw = (Get-Content $pwFile -Raw).Trim()
   $h  = @{ 'X-Admin-Pw' = $pw }
   try { Invoke-WebRequest "$WORKER/api/audit" -Headers $h -OutFile (Join-Path $dayDir 'audit_log.json') -UseBasicParsing; Write-Output "  [ok] audit_log.json" }
