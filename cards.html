@@ -61,6 +61,7 @@
     .card.back .sig-img {
       width: 100%;
       height: auto;
+      display: block;
     }
 
     /* 본문 — 그래픽과 정보를 수직 중앙 + 좌우 균등 배치 */
@@ -212,7 +213,7 @@ document.getElementById('grid').innerHTML = people.map(pp => `
   </div>`).join('');
 
 // 뒷면 — 홈페이지 풀 시그니처(inline, 페이지 Jua 폰트 적용)
-const SIGNATURE = `<svg class="sig-img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 160">
+const SIGNATURE = `<svg class="sig-img" xmlns="http://www.w3.org/2000/svg" viewBox="6 26 351 110">
   <defs><clipPath id="sigc"><circle cx="60" cy="60" r="54"/></clipPath></defs>
   <svg x="10" y="30" width="100" height="100" viewBox="0 0 120 120">
     <circle cx="60" cy="60" r="54" fill="#0d2461"/>
@@ -236,7 +237,7 @@ const SIGNATURE = `<svg class="sig-img" xmlns="http://www.w3.org/2000/svg" viewB
   </svg>
   <text class="brand" x="130" y="54" font-size="30" fill="#0d2461" letter-spacing="1">가리봉2구역</text>
   <text x="130" y="80" font-family="'Noto Sans KR',sans-serif" font-size="16" font-weight="600" fill="#0d2461" letter-spacing="0.2">재개발정비사업조합</text>
-  <line x1="130" y1="90" x2="392" y2="90" stroke="#d4d8e0" stroke-width="1.5"/>
+  <line x1="130" y1="90" x2="348" y2="90" stroke="#d4d8e0" stroke-width="1.5"/>
   <text x="130" y="110" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="500" fill="#4b5563" letter-spacing="0.2">새벽이 밝아오는 가리봉, 함께 만드는 내일</text>
   <text x="130" y="130" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="400" fill="#7a8290">서울 구로구 구로동로 17-1, 3층</text>
 </svg>`;
