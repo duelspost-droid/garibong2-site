@@ -470,7 +470,7 @@
             <div class="ccard-icon">📞</div>
             <div class="ccard-body">
               <h4>전화 문의</h4>
-              <p class="ccard-main" id="c-contact-phone">02-000-0000</p>
+              <p class="ccard-main"><a id="c-contact-phone" href="tel:020000000">02-000-0000</a></p>
               <p class="ccard-sub" id="c-contact-hours">평일 09:00 ~ 18:00</p>
             </div>
           </div>
@@ -478,7 +478,7 @@
             <div class="ccard-icon">✉️</div>
             <div class="ccard-body">
               <h4>이메일</h4>
-              <p class="ccard-main" id="c-contact-email">info@garibong2.kr</p>
+              <p class="ccard-main"><a id="c-contact-email" href="mailto:info@garibong2.kr">info@garibong2.kr</a></p>
               <p class="ccard-sub">(예시 이메일)</p>
             </div>
           </div>
@@ -595,12 +595,19 @@
         setText('c-contact-hours',   c.contact?.hours);
         setText('c-contact-email',   c.contact?.email);
         setText('c-contact-address', c.contact?.address_full || c.contact?.address);
+        // 전화·이메일 클릭 연결 (tel: / mailto:)
+        if (c.contact?.phone) { const a = document.getElementById('c-contact-phone'); if (a) a.href = 'tel:' + c.contact.phone.replace(/[^0-9+]/g, ''); }
+        if (c.contact?.email) { const a = document.getElementById('c-contact-email'); if (a) a.href = 'mailto:' + c.contact.email.trim(); }
         // 사업 진행 현황
         renderProgress(c.progress);
         // 푸터
         if (c.footer) {
           const fi = document.getElementById('c-footer-info');
-          if (fi) fi.innerHTML = `${esc(c.footer.address)}<br>대표전화: ${esc(c.footer.phone)} &nbsp;|&nbsp; ${esc(c.footer.email)}`;
+          if (fi) {
+            const telHref  = 'tel:' + String(c.footer.phone || '').replace(/[^0-9+]/g, '');
+            const mailHref = 'mailto:' + String(c.footer.email || '').trim();
+            fi.innerHTML = `${esc(c.footer.address)}<br>대표전화: <a href="${telHref}">${esc(c.footer.phone)}</a> &nbsp;|&nbsp; <a href="${mailHref}">${esc(c.footer.email)}</a>`;
+          }
           setText('c-footer-copyright', c.footer.copyright);
         }
       }).catch(() => {});
