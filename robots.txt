@@ -1,3 +1,10 @@
 User-agent: *
+Allow: /
 Disallow: /gb2r-manage-7x9k.html
 Disallow: /unlock.html
+Disallow: /cards.html
+Disallow: /ci-preview.html
+Disallow: /font-compare.html
+Disallow: /card_versions/
+
+Sitemap: https://garibong2.co.kr/sitemap.xml
