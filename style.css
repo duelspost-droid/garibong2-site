@@ -656,17 +656,18 @@ footer { background: #0f1e2f; }
    RESPONSIVE — Mobile  (≤ 640px)
    ════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
-  /* 모바일 본문 글자 키우기 (기본 14→16, 작은 12→13.5, 큰 16→18) */
+  /* 모바일 본문 글자 키우기 (기본 14→17, 작은 12→14.5, 큰 16→19.5) */
   :root {
-    --fs-sm:   13.5px;
-    --fs-base: 16px;
-    --fs-lg:   18px;
+    --fs-sm:   14.5px;
+    --fs-base: 17px;
+    --fs-lg:   19.5px;
+    --fs-h2:   27px;   /* 섹션 제목 24→27 */
   }
-  /* 라벨·보조 텍스트도 살짝 키움 */
+  /* 라벨·보조 텍스트도 함께 키움 */
   .ccard-sub, .greeting-name span, .greeting-sig span,
-  .footer-left p, .footer-nav a { font-size: 13.5px; }
-  .about-card label, .ccard h4 { font-size: 12px; }
-  .step-badge { font-size: 12px; }
+  .footer-left p, .footer-nav a { font-size: 14px; }
+  .about-card label, .ccard h4 { font-size: 12.5px; }
+  .step-badge { font-size: 12.5px; }
 
   /* Nav */
   .gnav      { display: none; }
