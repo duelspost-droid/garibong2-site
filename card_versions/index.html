@@ -58,23 +58,14 @@
       <tbody id="dlBody"></tbody>
     </table>
     <div style="margin-top:18px; padding-top:16px; border-top:1px dashed #e2e8f0;">
-      <div style="font-size:13px; font-weight:700; color:#0d2461; margin-bottom:10px;">📦 전체(8종) 한 번에 받기 — 포맷 선택</div>
+      <div style="font-size:13px; font-weight:700; color:#0d2461; margin-bottom:10px;">📦 전체(8종) 한 파일로 받기 — 포맷 선택</div>
       <div class="dl-foot" style="margin-top:0;">
-        <button class="dl-allbtn" onclick="downloadAll('svg')">⬇ SVG 전체</button>
-        <button class="dl-allbtn" onclick="downloadAll('png')">⬇ PNG 전체</button>
-        <button class="dl-allbtn" onclick="downloadAll('jpg')">⬇ JPG 전체</button>
-        <button class="dl-allbtn" onclick="downloadAll('pdf')">⬇ PDF 전체</button>
+        <a class="dl-allbtn" href="v11_files/all_cards.svg" download>⬇ SVG (벡터 한 파일)</a>
+        <a class="dl-allbtn" href="v11_files/all_cards_sheet.png" download>⬇ PNG (한 장)</a>
+        <a class="dl-allbtn" href="v11_files/all_cards_sheet.jpg" download>⬇ JPG (한 장)</a>
+        <a class="dl-allbtn" href="v11_files/all_cards_8page.pdf" download>⬇ PDF (8페이지)</a>
       </div>
-      <p class="dl-note" style="margin-top:8px;">※ 선택한 포맷의 8개 파일이 순서대로 자동 저장됩니다. 브라우저가 "여러 파일 다운로드"를 물으면 <b>허용</b>을 눌러주세요.</p>
-    </div>
-    <div style="margin-top:16px; padding-top:16px; border-top:1px dashed #e2e8f0;">
-      <div style="font-size:13px; font-weight:700; color:#0d2461; margin-bottom:10px;">🖨️ 전체 인쇄용 페이지 — 한 파일로 (8종 묶음)</div>
-      <div class="dl-foot" style="margin-top:0;">
-        <a class="dl-allbtn" href="v11_files/all_cards_8page.pdf" download>⬇ PDF (8페이지·각 90×50mm)</a>
-        <a class="dl-allbtn" href="v11_files/all_cards_sheet.png" download>⬇ PNG (전체 한 장)</a>
-        <a class="dl-allbtn" href="v11_files/all_cards_sheet.jpg" download>⬇ JPG (전체 한 장)</a>
-      </div>
-      <p class="dl-note" style="margin-top:8px;">※ <b>PDF</b>=각 페이지가 명함 1장(90×50mm)인 8페이지 인쇄 원본 — 업체에 이 파일 하나만 전달하면 됩니다 · <b>PNG/JPG</b>=8종이 한 장에 보이는 시안 확인용 시트</p>
+      <p class="dl-note" style="margin-top:8px;">※ 선택한 포맷의 <b>8종 전체가 하나의 파일</b>로 저장됩니다.<br>· <b>SVG</b>=8장이 한 벡터 파일(2열×4행) — 일러스트레이터에서 편집 · <b>PNG/JPG</b>=8장이 한 장에 보이는 시트 · <b>PDF</b>=각 페이지가 명함 1장(90×50mm)인 8페이지 인쇄 원본(업체에 이 파일 하나만 전달)</p>
     </div>
     <div class="dl-foot" style="margin-top:16px; padding-top:16px; border-top:1px dashed #e2e8f0;">
       <a class="dl-allbtn alt" href="../cards.html" target="_blank">🖨️ 인쇄 미리보기 페이지 (Ctrl+P)</a>
@@ -99,20 +90,6 @@
     ['이사 · 한영택', 'front_7_7_dir_hanyoungtaek'],
     ['공통 뒷면',     'back_common']
   ];
-  // 선택 포맷 전체(8종) 순차 다운로드
-  window.downloadAll = function(ext) {
-    DL.forEach(([label, f], i) => {
-      setTimeout(() => {
-        const a = document.createElement('a');
-        a.href = `v11_files/${f}.${ext}`;
-        a.download = `${f}.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }, i * 450);
-    });
-  };
-
   document.getElementById('dlBody').innerHTML = DL.map(([label, f]) => `
     <tr>
       <td>${label}</td>
