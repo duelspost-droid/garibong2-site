@@ -204,7 +204,7 @@ document.getElementById('grid').innerHTML = people.map(pp => `
       <div class="person">
         <div class="role-name">
           <span class="role">${pp.role}</span>
-          <span class="name">${pp.name}</span>
+          <span class="name" style="${pp.role.length >= 3 ? 'letter-spacing:11px' : ''}">${pp.name}</span>
         </div>
         <div class="contact">
           <p><span class="label">P</span>${pp.p}</p>
