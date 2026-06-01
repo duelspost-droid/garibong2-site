@@ -319,43 +319,8 @@
         <p>조합의 최신 소식을 확인하세요.</p>
       </div>
       <div class="notice-list" id="noticeList">
-        <!-- Firebase에서 동적 로드 / 미설정시 샘플 표시 -->
-        <a href="#" class="notice-row">
-          <span class="nbadge new">NEW</span>
-          <div class="notice-body">
-            <h4>제○차 조합원 총회 개최 안내</h4>
-            <p>일시: 2025년 ○월 ○일 &nbsp;/&nbsp; 장소: ○○구민회관</p>
-          </div>
-          <span class="notice-date">2025.00.00</span>
-          <span class="notice-arr">›</span>
-        </a>
-        <a href="#" class="notice-row">
-          <span class="nbadge">공지</span>
-          <div class="notice-body">
-            <h4>사업시행계획인가 신청 완료 안내</h4>
-            <p>관할 구청에 사업시행계획인가를 신청하였습니다.</p>
-          </div>
-          <span class="notice-date">2025.00.00</span>
-          <span class="notice-arr">›</span>
-        </a>
-        <a href="#" class="notice-row">
-          <span class="nbadge">공지</span>
-          <div class="notice-body">
-            <h4>조합 홈페이지 공식 오픈 안내</h4>
-            <p>가리봉2구역 조합 공식 홈페이지가 오픈되었습니다.</p>
-          </div>
-          <span class="notice-date">2025.00.00</span>
-          <span class="notice-arr">›</span>
-        </a>
-        <a href="#" class="notice-row">
-          <span class="nbadge">안내</span>
-          <div class="notice-body">
-            <h4>이주비 대출 안내문 배포</h4>
-            <p>이주비 대출 관련 안내문을 조합원께 배포합니다.</p>
-          </div>
-          <span class="notice-date">2025.00.00</span>
-          <span class="notice-arr">›</span>
-        </a>
+        <!-- notices.json 에서 동적 로드 (아래는 로딩 표시) -->
+        <div class="notice-body" style="padding:18px 4px; color:rgba(255,255,255,.55); font-size:14px;">공지사항을 불러오는 중…</div>
       </div>
     </div>
   </section>
@@ -566,16 +531,16 @@
             <div class="ccard-icon">📞</div>
             <div class="ccard-body">
               <h4>전화 문의</h4>
-              <p class="ccard-main"><a id="c-contact-phone" href="tel:020000000">02-000-0000</a></p>
-              <p class="ccard-sub" id="c-contact-hours">평일 09:00 ~ 18:00</p>
+              <p class="ccard-main"><a id="c-contact-phone" href="tel:028530923">02-853-0923</a></p>
+              <p class="ccard-sub" id="c-contact-hours">평일, 토요일 09:00 ~ 18:00</p>
             </div>
           </div>
           <div class="ccard">
             <div class="ccard-icon">✉️</div>
             <div class="ccard-body">
               <h4>이메일</h4>
-              <p class="ccard-main"><a id="c-contact-email" href="mailto:info@garibong2.kr">info@garibong2.kr</a></p>
-              <p class="ccard-sub">(예시 이메일)</p>
+              <p class="ccard-main"><a id="c-contact-email" href="mailto:glb0923@naver.com">glb0923@naver.com</a></p>
+              <p class="ccard-sub">조합 공식 이메일</p>
             </div>
           </div>
           <div class="ccard">
@@ -611,7 +576,7 @@
           <img src="symbol.svg" alt="심볼" class="footer-symbol"/>
           <span>가리봉2구역재개발정비사업조합</span>
         </div>
-        <p id="c-footer-info">서울특별시 구로구 구로동로 17-1, 3층<br>대표전화: 02-000-0000 &nbsp;|&nbsp; info@garibong2.kr</p>
+        <p id="c-footer-info">서울 구로구 구로동로 17-1, 3층<br>대표전화: 02-853-0923 &nbsp;|&nbsp; glb0923@naver.com</p>
       </div>
       <nav class="footer-nav">
         <a href="#about">조합소개</a>
