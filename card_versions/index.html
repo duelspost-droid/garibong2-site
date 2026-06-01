@@ -52,7 +52,7 @@
 
   <!-- 명함업체용 다운로드 -->
   <div class="dl-panel">
-    <div class="dl-head">📥 명함업체용 다운로드 <span>최신 확정안 v13 (뒷면 QR 포함) · 90×50mm 양면</span></div>
+    <div class="dl-head">📥 명함업체용 다운로드 <span>최신 확정안 v13 (위원장 추가, 뒷면 QR 포함) · 90×50mm 양면 · 9종</span></div>
     <table class="dl-table">
       <thead><tr><th>구분</th><th>SVG (벡터·일러스트)</th><th>PNG (포토샵)</th><th>JPG (고해상도)</th><th>PDF (인쇄용)</th></tr></thead>
       <tbody id="dlBody"></tbody>
@@ -63,9 +63,9 @@
         <a class="dl-allbtn" href="v11_files/all_cards.svg" download>⬇ SVG (벡터 한 파일)</a>
         <a class="dl-allbtn" href="v11_files/all_cards_sheet.png" download>⬇ PNG (한 장)</a>
         <a class="dl-allbtn" href="v11_files/all_cards_sheet.jpg" download>⬇ JPG (한 장)</a>
-        <a class="dl-allbtn" href="v11_files/all_cards_8page.pdf" download>⬇ PDF (8페이지)</a>
+        <a class="dl-allbtn" href="v11_files/all_cards_9page.pdf" download>⬇ PDF (9페이지)</a>
       </div>
-      <p class="dl-note" style="margin-top:8px;">※ 선택한 포맷의 <b>8종 전체가 하나의 파일</b>로 저장됩니다.<br>· <b>SVG</b>=8장이 한 벡터 파일(2열×4행) — 일러스트레이터에서 편집 · <b>PNG/JPG</b>=8장이 한 장에 보이는 시트 · <b>PDF</b>=각 페이지가 명함 1장(90×50mm)인 8페이지 인쇄 원본(업체에 이 파일 하나만 전달)</p>
+      <p class="dl-note" style="margin-top:8px;">※ 선택한 포맷의 <b>8종 전체가 하나의 파일</b>로 저장됩니다.<br>· <b>SVG</b>=8장이 한 벡터 파일(2열×4행) — 일러스트레이터에서 편집 · <b>PNG/JPG</b>=8장이 한 장에 보이는 시트 · <b>PDF</b>=각 페이지가 명함 1장(90×50mm)인 9페이지 인쇄 원본(업체에 이 파일 하나만 전달)</p>
     </div>
     <div class="dl-foot" style="margin-top:16px; padding-top:16px; border-top:1px dashed #e2e8f0;">
       <a class="dl-allbtn alt" href="../cards.html" target="_blank">🖨️ 인쇄 미리보기 페이지 (Ctrl+P)</a>
@@ -88,6 +88,7 @@
     ['이사 · 김충식', 'front_5_5_dir_kimchungsik'],
     ['이사 · 박은경', 'front_6_6_dir_parkeunkyung'],
     ['이사 · 한영택', 'front_7_7_dir_hanyoungtaek'],
+    ['위원장 · 최상길', 'front_8_8_chair_choisangkil'],
     ['공통 뒷면',     'back_common']
   ];
   document.getElementById('dlBody').innerHTML = DL.map(([label, f]) => `
