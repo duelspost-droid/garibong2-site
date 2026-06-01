@@ -186,7 +186,7 @@ const SKYLINE = `<svg class="skyline" viewBox="16 2 174 124" xmlns="http://www.w
   <line x1="20" y1="124" x2="186" y2="124" stroke-width="2"/></svg>`;
 
 const people = [
-  { role:'위원장', name:'최 상 길', p:'010.2259.3598', e:'csg3598@naver.com' },
+  { role:'위원장', name:'최 상 길', p:'010.2259.3598', e:'csg3598@naver.com', t:'02-853-0923', f:'02-853-0923' },
   { role:'감사', name:'신 수 호', p:'010.5625.5599', e:'kafler4@hanmail.net' },
   { role:'이사', name:'김 명 식', p:'010.2040.9869', e:'kimms9869@naver.com' },
   { role:'이사', name:'서 훈',     p:'010.5393.7006', e:'sh4242393@naver.com' },
@@ -209,6 +209,8 @@ document.getElementById('grid').innerHTML = people.map(pp => `
         <div class="contact">
           <p><span class="label">P</span>${pp.p}</p>
           <p><span class="label">E</span>${pp.e}</p>
+          ${pp.t ? `<p><span class="label">T</span>${pp.t}</p>` : ''}
+          ${pp.f ? `<p><span class="label">F</span>${pp.f}</p>` : ''}
         </div>
       </div>
     </div>
