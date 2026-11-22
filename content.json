@@ -68,9 +68,9 @@
       "desc": "2차 입찰 진행 중 (현장설명회 10.27 · 입찰마감 12.14)"
     },
     {
-      "status": "active",
+      "status": "upcoming",
       "title": "사업시행계획인가",
-      "desc": "사업시행계획 인가 신청 및 검토 중"
+      "desc": "사업시행계획 수립 및 인가 신청"
     },
     {
       "status": "upcoming",
