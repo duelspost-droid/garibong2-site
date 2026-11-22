@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://garibong2-audit.duels.workers.dev; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"/>
   <meta name="referrer" content="strict-origin-when-cross-origin"/>
   <title>임원 소개 — 가리봉2구역재개발정비사업조합</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -243,5 +243,21 @@
       .catch(()=>{});
   </script>
 
+
+  <!-- 방문객 기록 (세션·페이지당 1회, 관리자 감사용) -->
+  <script>
+    (function(){
+      try {
+        var k = 'vlog_' + location.pathname;
+        if (sessionStorage.getItem(k)) return;
+        sessionStorage.setItem(k, '1');
+        var ref = document.referrer || '';
+        if (ref.indexOf(location.origin) === 0) ref = '(내부) ' + ref.slice(location.origin.length);
+        fetch('https://garibong2-audit.duels.workers.dev/api/visit', { method:'POST', keepalive:true,
+          headers:{ 'Content-Type':'text/plain' },
+          body: JSON.stringify({ page: location.pathname, ref: ref }) }).catch(function(){});
+      } catch(e) {}
+    })();
+  </script>
 </body>
 </html>

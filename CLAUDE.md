@@ -94,7 +94,7 @@
 - 코드: `cloudflare-worker/worker.js` (대시보드 Edit code에 붙여넣어 배포)
 
 ### 바인딩 (Cloudflare 대시보드에서 설정)
-- **KV**: `AUDIT` — keys: `log`(감사로그), `pw`(비밀번호), `perms`(일반관리자 권한)
+- **KV**: `AUDIT` — keys: `log`(감사로그), `pw`(비밀번호), `perms`(일반관리자 권한), `visits`(방문객 기록: 1년·최대 2만건 자동 정리)
 - **Secret**: `GH_TOKEN`(GitHub PAT), `ADMIN_PW`, `STAFF_PW`
 - **Var**: `GH_REPO`=`duelspost-droid/garibong2-site`, `ALLOWED_ORIGINS`=`https://garibong2.co.kr,https://www.garibong2.co.kr,https://duelspost-droid.github.io` (도메인 변경 시 이 값도 갱신해야 관리자 CORS 통과)
 
@@ -104,6 +104,8 @@
 - `GET|POST /api/perms` (슈퍼)
 - `GET|PUT /api/gh?path=` — GitHub 파일 읽기/쓰기 (X-Admin-Pw 인증, 경로 화이트리스트, 일반관리자 권한 강제)
 - `POST /api/audit`(이벤트 기록, 서버가 실제 IP) / `GET /api/audit`(슈퍼 또는 감사권한)
+- `POST /api/visit`(공개 페이지 방문 기록, 허용 Origin만, text/plain 본문) / `GET /api/visit`(슈퍼 또는 감사권한) — index·officers·ci 페이지가 세션·페이지당 1회 전송, 관리자 통계 탭 '방문객 감사기록' 카드에서 조회
+- ⚠️ KV 무료 한도 쓰기 1,000회/일 — 방문 기록 1건 = 쓰기 1회
 
 ### 방문 통계
 - 무료 카운터 API **Abacus**(`abacus.jasoncameron.dev`), 네임스페이스 `garibong2-9x7k2p`

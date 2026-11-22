@@ -9,6 +9,7 @@
  *   POST /api/password : { target:'admin'|'staff', newPassword }  (슈퍼만, 헤더 X-Admin-Pw)
  *   GET  /api/gh?path= : 파일 읽기 | PUT /api/gh : 파일 쓰기
  *   POST /api/audit    : 로그인 이벤트 기록 | GET /api/audit : 조회(슈퍼)
+ *   POST /api/visit    : 방문객 기록(공개 페이지, 허용 Origin만) | GET /api/visit : 조회(슈퍼/감사권한)
  *
  * 바인딩: KV=AUDIT, Secret=GH_TOKEN, ADMIN_PW, STAFF_PW / Var=GH_REPO, ALLOWED_ORIGINS
  */
@@ -16,6 +17,10 @@
 const KV_LOG  = 'log';
 const KV_PW   = 'pw';
 const KV_PERM = 'perms';
+const KV_VISIT = 'visits';
+// 방문객 기록: 최근 1년 + 최대 2만건 보관 (오래된 것부터 자동 삭제)
+const VISIT_MAX = 20000;
+const VISIT_KEEP_MS = 365 * 24 * 3600 * 1000;
 // 감사기록은 영구 보관 (삭제·덮어쓰기 없음). 안전장치로 매우 큰 상한만 둠.
 const MAX_ENTRIES = 50000;
 
@@ -98,9 +103,52 @@ export default {
       return json({ error: 'method not allowed' }, 405, cors);
     }
 
+    if (url.pathname === '/api/visit') {
+      if (request.method === 'POST') return visitPost(request, env, cors, origin);
+      if (request.method === 'GET')  return visitGet(request, env, cors);
+      return json({ error: 'method not allowed' }, 405, cors);
+    }
+
     return json({ error: 'not found' }, 404, cors);
   }
 };
+
+// 방문객 기록 (공개 홈페이지에서 세션·페이지당 1회 전송)
+async function visitPost(request, env, cors, origin) {
+  const allowed = String(env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!allowed.includes(origin)) return json({ error: 'forbidden' }, 403, cors);
+  let body = {}; try { body = JSON.parse(await request.text()); } catch (e) {}
+  const cf = request.cf || {};
+  const entry = {
+    ts: Date.now(),
+    ip: request.headers.get('CF-Connecting-IP') || '알 수 없음',
+    country: cf.country || '',
+    city: cf.city || '',
+    org: String(cf.asOrganization || '').slice(0, 60),
+    page: String(body.page || '').slice(0, 80),
+    ref: String(body.ref || '').slice(0, 200),
+    ua: String(request.headers.get('User-Agent') || '').slice(0, 220)
+  };
+  let log = [];
+  try { log = JSON.parse((await env.AUDIT.get(KV_VISIT)) || '[]'); } catch (e) {}
+  log.unshift(entry);
+  const cutoff = Date.now() - VISIT_KEEP_MS;
+  log = log.filter(e => e.ts >= cutoff).slice(0, VISIT_MAX);
+  await env.AUDIT.put(KV_VISIT, JSON.stringify(log));
+  return json({ ok: true }, 200, cors);
+}
+
+async function visitGet(request, env, cors) {
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (!role) return json({ error: 'unauthorized' }, 401, cors);
+  if (role === 'staff') {
+    const perms = await getPerms(env);
+    if (!perms.stats.audit) return json({ error: 'unauthorized' }, 401, cors);
+  }
+  let log = [];
+  try { log = JSON.parse((await env.AUDIT.get(KV_VISIT)) || '[]'); } catch (e) {}
+  return json({ log }, 200, cors);
+}
 
 // 비밀번호 변경 (슈퍼만)
 async function changePassword(request, env, cors) {
