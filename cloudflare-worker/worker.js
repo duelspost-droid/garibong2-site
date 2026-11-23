@@ -10,6 +10,7 @@
  *   GET  /api/gh?path= : 파일 읽기 | PUT /api/gh : 파일 쓰기
  *   POST /api/audit    : 로그인 이벤트 기록 | GET /api/audit : 조회(슈퍼)
  *   POST /api/visit    : 방문객 기록(공개 페이지, 허용 Origin만) | GET /api/visit : 조회(슈퍼/감사권한)
+ *   GET  /api/stats    : 방문수(누적·일별·월별, 한국시간) — 슈퍼/방문통계 권한
  *
  * 바인딩: KV=AUDIT, Secret=GH_TOKEN, ADMIN_PW, STAFF_PW / Var=GH_REPO, ALLOWED_ORIGINS
  */
@@ -18,6 +19,7 @@ const KV_LOG  = 'log';
 const KV_PW   = 'pw';
 const KV_PERM = 'perms';
 const KV_VISIT = 'visits';
+const KV_CNT = 'cnt';
 // 방문객 기록: 최근 1년 + 최대 2만건 보관 (오래된 것부터 자동 삭제)
 const VISIT_MAX = 20000;
 const VISIT_KEEP_MS = 365 * 24 * 3600 * 1000;
@@ -103,6 +105,8 @@ export default {
       return json({ error: 'method not allowed' }, 405, cors);
     }
 
+    if (url.pathname === '/api/stats' && request.method === 'GET') return statsGet(request, env, cors);
+
     if (url.pathname === '/api/visit') {
       if (request.method === 'POST') return visitPost(request, env, cors, origin);
       if (request.method === 'GET')  return visitGet(request, env, cors);
@@ -135,6 +139,7 @@ async function visitPost(request, env, cors, origin) {
   const cutoff = Date.now() - VISIT_KEEP_MS;
   log = log.filter(e => e.ts >= cutoff).slice(0, VISIT_MAX);
   await env.AUDIT.put(KV_VISIT, JSON.stringify(log));
+  if (body.count) { try { await bumpCount(env); } catch (e) {} }
   return json({ ok: true }, 200, cors);
 }
 
@@ -271,4 +276,35 @@ function corsHeaders(origin, env) {
 }
 function json(obj, status, cors) {
   return new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json', ...cors } });
+}
+
+// 방문수 카운터 (Abacus 대체) — KV 'cnt' = { total, d:{YYYYMMDD:n}, m:{YYYYMM:n} }, 날짜는 한국시간 기준
+async function bumpCount(env) {
+  const k = new Date(Date.now() + 9 * 3600 * 1000);
+  const ym = k.getUTCFullYear() + String(k.getUTCMonth() + 1).padStart(2, '0');
+  const ymd = ym + String(k.getUTCDate()).padStart(2, '0');
+  let c = {};
+  try { c = JSON.parse((await env.AUDIT.get(KV_CNT)) || '{}'); } catch (e) {}
+  c.total = (c.total || 0) + 1;
+  c.d = c.d || {}; c.m = c.m || {};
+  c.d[ymd] = (c.d[ymd] || 0) + 1;
+  c.m[ym] = (c.m[ym] || 0) + 1;
+  // 일별은 최근 400일, 월별은 최근 5년만 유지
+  const dKeys = Object.keys(c.d).sort();
+  while (dKeys.length > 400) delete c.d[dKeys.shift()];
+  const mKeys = Object.keys(c.m).sort();
+  while (mKeys.length > 60) delete c.m[mKeys.shift()];
+  await env.AUDIT.put(KV_CNT, JSON.stringify(c));
+}
+
+async function statsGet(request, env, cors) {
+  const role = await roleFor(request.headers.get('X-Admin-Pw') || '', env);
+  if (!role) return json({ error: 'unauthorized' }, 401, cors);
+  if (role === 'staff') {
+    const perms = await getPerms(env);
+    if (!perms.stats.visits) return json({ error: 'unauthorized' }, 401, cors);
+  }
+  let c = {};
+  try { c = JSON.parse((await env.AUDIT.get(KV_CNT)) || '{}'); } catch (e) {}
+  return json({ total: c.total || 0, d: c.d || {}, m: c.m || {} }, 200, cors);
 }

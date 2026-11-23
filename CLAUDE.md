@@ -108,8 +108,8 @@
 - ⚠️ KV 무료 한도 쓰기 1,000회/일 — 방문 기록 1건 = 쓰기 1회
 
 ### 방문 통계
-- 무료 카운터 API **Abacus**(`abacus.jasoncameron.dev`), 네임스페이스 `garibong2-9x7k2p`
-- 홈페이지 방문 시 세션당 1회 `total` + `d<YYYYMMDD>` + `m<YYYYMM>` 증가
+- **2026-11-23부터 Worker KV `cnt`**({total, d:{YYYYMMDD}, m:{YYYYMM}}, 한국시간)로 셈. 홈페이지 방문 비컨(`/api/visit`, `count:true`)이 세션당 1회 증가, 관리자는 `GET /api/stats` 1회 조회.
+- 예전 무료 카운터 **Abacus**(`abacus.jasoncameron.dev`, 네임스페이스 `garibong2-9x7k2p`)는 응답 4~30초·실패 잦아 폐기. 이전 시점 값(누적 1,524·10.20~11.23 일별·2026-05~11 월별)은 KV로 옮김(11.20·11.21 일별은 조회 실패로 0).
 
 ### ⚠️ 비밀값(저장소에 두지 않음 — 운영자만 보유)
 - `GH_TOKEN`(GitHub PAT, fine-grained·이 저장소 Contents 권장)

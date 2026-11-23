@@ -1425,14 +1425,17 @@
   };
 
   // ── 방문 통계 ─────────────────────────────────────
-  const STATS_NS = 'garibong2-9x7k2p';
-  async function counterGet(key) {
+  // 방문수: Worker /api/stats 한 번 조회 (예전 Abacus 다건 조회는 느려서 교체)
+  let statsCache = null, statsCacheAt = 0;
+  async function fetchStats(force) {
+    if (!force && statsCache && Date.now() - statsCacheAt < 60000) return statsCache;
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 10000);
     try {
-      const r = await fetch(`https://abacus.jasoncameron.dev/get/${STATS_NS}/${key}`);
-      if (!r.ok) return 0;
-      const j = await r.json();
-      return j.value || 0;
-    } catch(e) { return 0; }
+      const r = await fetch(WORKER_URL + '/api/stats', { headers: { 'X-Admin-Pw': sessionPw() }, signal: ctl.signal });
+      if (!r.ok) throw new Error(r.status === 401 ? '조회 권한이 없습니다' : 'HTTP ' + r.status);
+      statsCache = await r.json(); statsCacheAt = Date.now();
+      return statsCache;
+    } finally { clearTimeout(tm); }
   }
   function ymd(d) { return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'); }
   function ym(d)  { return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0'); }
@@ -1442,7 +1445,7 @@
     document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-p') === p));
     loadStats();
   };
-  window.refreshStats = () => { loadStats(); renderAudit(); renderVisitors(); showToast('🔄 최신 정보로 새로고침했습니다'); };
+  window.refreshStats = () => { window.__statsForce = true; loadStats(); renderAudit(); renderVisitors(); showToast('🔄 최신 정보로 새로고침했습니다'); };
 
   function barRows(items, color) {
     const max = Math.max(1, ...items.map(i => i.c));
@@ -1464,8 +1467,16 @@
     document.getElementById('statToday').textContent = '…';
     const el = document.getElementById('statsDaily');
     el.textContent = '불러오는 중...';
-    const total = await counterGet('total');
-    const todayCnt = await counterGet('d' + ymd(today));
+    let st;
+    try { st = await fetchStats(window.__statsForce); }
+    catch (e) {
+      document.getElementById('statTotal').textContent = '-';
+      document.getElementById('statToday').textContent = '-';
+      el.innerHTML = '<span style="color:#dc2626;">방문 통계 조회 실패: ' + auditClean(e.name === 'AbortError' ? '시간 초과' : e.message) + '</span>';
+      return;
+    } finally { window.__statsForce = false; }
+    const total = st.total || 0;
+    const todayCnt = st.d[ymd(today)] || 0;
     document.getElementById('statTotal').textContent = total.toLocaleString();
     document.getElementById('statToday').textContent = todayCnt.toLocaleString();
 
@@ -1483,7 +1494,7 @@
       const weekday = ['일','월','화','수','목','금','토'];
       const days = [];
       for (let i = 0; i < n; i++) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d); }
-      const counts = await Promise.all(days.map(d => counterGet('d' + ymd(d))));
+      const counts = days.map(d => st.d[ymd(d)] || 0);
       items = days.map((d, i) => ({
         label: n === 7 ? `${d.getMonth()+1}.${d.getDate()}(${weekday[d.getDay()]})` : `${d.getMonth()+1}.${d.getDate()}`,
         c: counts[i]
@@ -1493,7 +1504,7 @@
     } else if (statsPeriod === '1y') {
       const months = [];
       for (let i = 0; i < 12; i++) { const d = new Date(); d.setMonth(d.getMonth() - i); months.push(d); }
-      const counts = await Promise.all(months.map(d => counterGet('m' + ym(d))));
+      const counts = months.map(d => st.m[ym(d)] || 0);
       items = months.map((d, i) => ({ label: `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}`, c: counts[i] }));
       const sum = counts.reduce((a,b)=>a+b,0);
       el.innerHTML = `<div style="font-size:13px;color:#475569;margin-bottom:10px;">최근 12개월 합계 <b style="color:#0d2461;">${sum.toLocaleString()}</b></div>` + barRows(items, '#0d2461');
